@@ -8,4 +8,4 @@
 ### [visualizer README](/src/visualizer/README.md)
 
 ## CPP package
-### [slam README](/src/SLAM/README.md)
+### [slam README](/src/slam/README.md)
