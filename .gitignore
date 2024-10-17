@@ -1,0 +1,26 @@
+*.pyc
+*.iml
+*.swp
+.project
+.pydevproject
+.DS_Store
+.idea
+
+**/__pycache__/
+__pycache__/
+src/perception/perception/object_detect/runs/
+src/perception/perception/run_images_ros
+src/perception/rosbags/
+
+.vscode
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# colcon/CMake output
+build
+install
+log
+
+candump*
+node_logs
