@@ -1,9 +1,12 @@
 #include "rclcpp/rclcpp.hpp"         // Required for ROS 2 functionality
 #include "std_msgs/msg/string.hpp"   // For String message type
+#include <yaml-cpp/yaml.h>
 
 class SlamNode : public rclcpp::Node {
 public:
-    SlamNode() : Node("slam_node") {
+    SlamNode(YAML::Node config) : Node("slam_node") {
+        // parameters here
+
         // subscribers here 
         perception_subscriber_topic_ = "perception_topic";
         perception_subscription_ = this->create_subscription<std_msgs::msg::String>(
@@ -37,8 +40,9 @@ private:
 
 // Main function
 int main(int argc, char *argv[]) {
+    YAML::Node config = YAML::LoadFile("slam.yaml");
     rclcpp::init(argc, argv);
-    auto node = std::make_shared<SlamNode>();
+    auto node = std::make_shared<SlamNode>(config);
     rclcpp::spin(node);
     rclcpp::shutdown();
     return 0;

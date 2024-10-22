@@ -2,16 +2,24 @@
 
 # Import the necessary libraries here
 import rclpy                
-from rclpy.node import Node               
+from rclpy.node import Node   
+import yaml            
 
 # Add the necessary msg type imports here
 from std_msgs.msg import String
  
 # Algorithm imports here
 
+
+with open("planner.yaml", "r") as yaml_file:
+    planner_config_data = yaml.safe_load(yaml_file)
+
 class PlannerNode(Node):
     def __init__(self):
         super().__init__('planner_node')
+        # parameters here
+        
+        
         # subscribers here 
         self.slam_subscriber_topic = 'slam_topic'
         self.slam_subscription = self.create_subscription(

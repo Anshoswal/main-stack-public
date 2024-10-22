@@ -2,16 +2,23 @@
 
 # Import the necessary libraries here
 import rclpy                
-from rclpy.node import Node               
+from rclpy.node import Node
+import yaml             
 
 # Add the necessary msg type imports here
 from std_msgs.msg import String
  
 # Algorithm imports here
 
+
+with open("perception.yaml", "r") as yaml_file:
+    perception_config_data = yaml.safe_load(yaml_file)
 class PerceptionNode(Node):
     def __init__(self):
         super().__init__('perception_node')
+        # parameters here
+        
+        
         # subscribers here 
         self.cam_subscriber = 'cam_topic'
         self.perception_subscription = self.create_subscription(
