@@ -3,16 +3,24 @@
 # Import the necessary libraries here
 import rclpy                
 from rclpy.node import Node
-import yaml             
+import yaml        
+from pathlib import Path     
 
 # Add the necessary msg type imports here
 from std_msgs.msg import String
+from utils.msg_utils.to_slam_utils import send_to_SLAM
  
 # Algorithm imports here
 
 
-with open("perception.yaml", "r") as yaml_file:
+# Define ROOT 
+FILE = Path(__file__).resolve()
+ROOT = FILE.parents[0] # /home/your_name/path/to/IITBDV-main-stack/src/perception/perception
+
+# perception_config_data here
+with open(ROOT / "perception.yaml", "r") as yaml_file:
     perception_config_data = yaml.safe_load(yaml_file)
+
 class PerceptionNode(Node):
     def __init__(self):
         super().__init__('perception_node')
