@@ -22,6 +22,8 @@ src/perception/rosbags/
 build
 install
 log
+IITBDV_msgs
+IITBDV-msgs
 
 candump*
 node_logs
