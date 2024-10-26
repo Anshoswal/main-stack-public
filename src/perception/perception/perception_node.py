@@ -8,7 +8,7 @@ from pathlib import Path
 
 # Add the necessary msg type imports here
 from std_msgs.msg import String
-from utils.msg_utils.to_slam_utils import send_to_SLAM
+from perception.utils.msg_utils.to_slam_utils import send_to_SLAM
  
 # Algorithm imports here
 
@@ -31,7 +31,7 @@ class PerceptionNode(Node):
         self.cam_subscriber = 'cam_topic'
         self.perception_subscription = self.create_subscription(
             String,                       
-            self.subscriber,                  
+            self.cam_subscriber,                  
             self.cam_callback,       
             10                            
         )
