@@ -1,0 +1,5 @@
+bot:
+  perc_ppc:
+    topic: "/perception_data"
+  slam_ppc:
+    topic: "/slam_data"
