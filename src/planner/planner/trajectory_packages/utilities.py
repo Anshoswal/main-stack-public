@@ -1,7 +1,7 @@
 from scipy.interpolate import interp1d
 import numpy as np
 import math
-from scipy.spatial import Delaunay
+
 from itertools import combinations
 from scipy.spatial.distance import cdist
 
@@ -64,26 +64,7 @@ def interpolate(x_mid:list, y_mid:list, distances:list) -> np.ndarray:
 
  
 
-def midline_delaunay(blue_cones, yellow_cones):
-    new_current_detected_cones = np.append(blue_cones,yellow_cones, axis = 0)
-    new_current_detected_cones = np.array(new_current_detected_cones)
-   
-   #Obtaining the delaunay triangles and list of vertices
-    triangulation = Delaunay(new_current_detected_cones[:,:2])
-    index=triangulation.simplices
 
-    #matching the traingles to the cones' indices to use the colour information
-    new_list3 = triangle_with_colour(new_current_detected_cones,index)
-
-    #obtaining midpoint list from triangles
-    x_mid, y_mid, line_list , line_length_list = midpoints_from_triangle(new_list3)
-
-    #conversion to numpy array
-    x_mid = np.array(x_mid)
-    y_mid = np.array(y_mid)
-    line_list = np.array(line_list)
-    line_length_list = np.array(line_length_list)
-    return x_mid, y_mid, line_list , line_length_list
   
 
 
@@ -94,7 +75,7 @@ def triangle_with_colour(new_current_detected_cones,index):
         new_list3[i][0] = new_current_detected_cones[index[i][0]]
         new_list3[i][1] = new_current_detected_cones[index[i][1]]
         new_list3[i][2] = new_current_detected_cones[index[i][2]]
-        return new_list3
+    return new_list3
     
 
 
@@ -258,12 +239,7 @@ def choose_best_path(self, possible_paths, line_length_list, xy_mid, standard_wi
     return best_path, min_path_cost
 
 
-def get_best_path(xy_mid_send , posX , posY , line_length_list):
-    xy_mid_send = filter_points_by_distance(xy_mid_send ,(posX,posY))
-    possible_paths = evaluate_possible_paths(xy_mid_send , [posX , posY] )#possible paths is currently a list of arrays 
-    print("length of possible paths",len(possible_paths))
-    best_path,min_path_cost = choose_best_path(possible_paths,line_length_list,xy_mid_send)
-    return best_path
+
 
 
 def path_length_avg(possible_path):
