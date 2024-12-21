@@ -1,5 +1,28 @@
 bot:
   perc_ppc:
-    topic: "/perception_data"
+    topic: "/ConesCartesian"
+    data_type: "Track"
   slam_ppc:
     topic: "/slam_data"
+
+eufs:
+  cones:
+    sim_slam :
+      topic: "/ground_truth/track"
+      data_type: "ConeArrayWithCovariance"
+    ground_truth :
+      topic: "/ground_truth/cones"
+      data_type: "ConeArrayWithCovariance"
+    sim_perception :
+      topic: "/perception/cones"
+      data_type: "Track"
+    slam : 
+      topic: "/slam_data"
+      data_type : "Slam_state"
+  car_state:
+    sim_slam : 
+      topic: "/ground_truth/state"
+    ground_truth :
+      topic: "/ground_truth/state"
+    sim_perception :
+      topic: "/ground_truth/state"

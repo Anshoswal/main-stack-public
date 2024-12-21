@@ -1,9 +1,146 @@
 from scipy.interpolate import interp1d
 import numpy as np
 import math
-
+from numpy import cos,sin
 from itertools import combinations
 from scipy.spatial.distance import cdist
+
+def slam_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones,slam_blue_cones,slam_yellow_cones,slam_big_orange_cones,slam_orange_cones,posX , posY , car_yaw):
+    #initialization only in the slam cones 
+
+    distance_blue = []
+    distance_yellow = []
+
+    f_tire_x = posX + LENGTH_OF_CAR/2 * math.cos(car_yaw)#from yaml file
+    f_tire_y = posY + LENGTH_OF_CAR/2 * math.sin(car_yaw)
+    heading_vector = np.array([math.cos(car_yaw), math.sin(car_yaw)])
+
+    #only storing cones that are seen till time t in the slam array
+    for cone in data.blue_cones:
+        if is_in_slam(posX,posY,car_yaw,cone.point.x,cone.point.y,FOV,FOV_RADIUS):
+            if [cone.point.x,cone.point.y] not in slam_blue_cones:
+                slam_blue_cones.append([cone.point.x, cone.point.y])
+
+    for cone in data.yellow_cones:
+        if is_in_slam(posX,posY,car_yaw,cone.point.x,cone.point.y,FOV,FOV_RADIUS):
+            if [cone.point.x,cone.point.y] not in slam_yellow_cones:
+                slam_yellow_cones.append([cone.point.x, cone.point.y])
+
+    for cone in data.big_orange_cones:
+        if is_in_slam(posX,posY,car_yaw,cone.point.x,cone.point.y,FOV,FOV_RADIUS):
+            if [cone.point.x,cone.point.y] not in slam_big_orange_cones:
+                slam_big_orange_cones.append([cone.point.x, cone.point.y])
+
+    for cone in data.orange_cones:
+        if is_in_slam(posX,posY,car_yaw,cone.point.x,cone.point.y,FOV,FOV_RADIUS):
+            if [cone.point.x,cone.point.y] not in slam_orange_cones:
+                slam_orange_cones.append([cone.point.x, cone.point.y])
+
+    #FINDING CONES IN OUR REGION OF INTEREST FROM THE SLAM CONES
+    for cone in slam_blue_cones:
+       
+        if cone_in_ellipse(posX,posY,car_yaw,cone[0],cone[1],A,B):#from yaml file
+            blue_cones.append([cone[0], cone[1],1])
+
+
+    for cone in slam_yellow_cones:
+        if cone_in_ellipse(posX,posY,car_yaw,cone[0],cone[1],A,B):#from yaml file
+            yellow_cones.append([cone[0], cone[1],0])
+
+    for cone in slam_big_orange_cones:
+        if cone_in_ellipse(posX,posY,car_yaw,cone[0],cone[1],A,B):#from yaml file
+            big_orange_cones.append([cone[0], cone[1]])
+            
+    for cone in slam_orange_cones:
+        if cone_in_ellipse(posX,posY,car_yaw,cone[0],cone[1],A,B):#from yaml file
+            orange_cones.append([cone[0], cone[1]])  
+
+    return blue_cones, yellow_cones, big_orange_cones , orange_cones
+
+
+
+def cone_in_ellipse(car_x, car_y, car_theta, cone_x, cone_y,a,b):#Checks among the cones if they lie in an ellipse around the car at time t
+    # Translate cone position relative to car
+    translated_x = cone_x - car_x
+    translated_y = cone_y - car_y
+
+    # Rotate coordinates to align with the car's orientation
+    rotated_x = (translated_x * np.cos(-car_theta) - 
+                translated_y * np.sin(-car_theta))
+    rotated_y = (translated_x * np.sin(-car_theta) + 
+                translated_y * np.cos(-car_theta))
+
+    # Check if the point is inside the ellipse
+    return (rotated_x**2 / a**2) + (rotated_y**2 / b**2) <= 1 and rotated_x > 0
+
+
+
+def groundTruth_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones):
+    for cone in data.blue_cones:
+        if math.sqrt(cone.point.x**2+cone.point.y**2)<=PERCEPTION_DISTANCE:#config file
+            blue_cones.append([cone.point.x, cone.point.y])
+    for cone in data.yellow_cones:
+        if math.sqrt(cone.point.x**2+cone.point.y**2)<=PERCEPTION_DISTANCE:
+            yellow_cones.append([cone.point.x, cone.point.y])
+    for cone in data.big_orange_cones:
+        if math.sqrt(cone.point.x**2+cone.point.y**2)<=PERCEPTION_DISTANCE:
+            big_orange_cones.append([cone.point.x, cone.point.y])
+    for cone in data.orange_cones:
+        if math.sqrt(cone.point.x**2+cone.point.y**2)<=PERCEPTION_DISTANCE:
+            orange_cones.append([cone.point.x, cone.point.y])
+    return blue_cones, yellow_cones, big_orange_cones , orange_cones
+
+
+
+def is_in_slam(car_x, car_y, car_theta, cone_x, cone_y, fov_rad, radius):#Checks whether a cone is in the car's field of view which is an arc
+    # Calculate the distance between the car and the cone
+    dx = cone_x - car_x
+    dy = cone_y  - car_y
+    distance = math.sqrt(dx**2 + dy**2)
+
+    # Check if the cone is within the radius
+    if distance > radius:
+        return False
+
+    # Calculate the angle between the car's orientation and the cone's position
+    angle_to_cone = math.atan2(dy, dx)
+
+    # Normalize angle differences to be between -pi and pi
+    angle_diff = (angle_to_cone - car_theta + math.pi) % (2 * math.pi) - math.pi
+
+    # Check if the cone is within the FOV
+    return -fov_rad / 2 <= angle_diff <= fov_rad / 2
+
+
+
+def perc_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones):
+    for cone in data.track:
+        if cone.color == 0:
+            blue_cones.append([(cone.location.x)*cos(cone.location.y), (cone.location.x)*sin(cone.location.y)])
+        elif cone.color == 1:
+            yellow_cones.append([(cone.location.x)*cos(cone.location.y), (cone.location.x)*sin(cone.location.y)])
+        elif cone.color == 2:
+            big_orange_cones.append([(cone.location.x)*cos(cone.location.y), (cone.location.x)*sin(cone.location.y)])
+        elif cone.color == 3:
+            orange_cones.append([(cone.location.x)*cos(cone.location.y), (cone.location.x)*sin(cone.location.y)])
+    return blue_cones, yellow_cones, big_orange_cones , orange_cones
+
+
+def distance_cones(cones,car_yaw,posX,posY):
+    distance_cones = []
+    heading_vector = np.array([math.cos(car_yaw), math.sin(car_yaw)])
+
+    f_tire_x = posX + LENGTH_OF_CAR/2 * math.cos(car_yaw)#from yaml file
+    f_tire_y = posY + LENGTH_OF_CAR/2 * math.sin(car_yaw)
+
+    for cone in cones:
+        position_vector = np.array([(cone[0]-f_tire_x),(cone[1] - f_tire_y)])
+        dot_product = np.dot(heading_vector, position_vector)
+        if dot_product>0:
+            distance_cones.append(math.sqrt((cone[0]- f_tire_x)**2 + (cone[1] - f_tire_y)**2))
+        else:
+            distance_cones.append((-1)*math.sqrt((cone[0] - f_tire_x)**2 + (cone[1] - f_tire_y)**2))
+    return  distance_cones
 
 
 def unique(a:np.ndarray) -> np.ndarray: 

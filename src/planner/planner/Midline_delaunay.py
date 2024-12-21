@@ -6,7 +6,7 @@ from trajectory_packages.utilities import interpolate , check_track , get_bounda
 from scipy.spatial import Delaunay
 
 class Midline_delaunay():
-    def __init__(self , CONFIG_PATH:str ,blue_cones,yellow_cones , orange_cones , big_orange_cones ,distance_blue,distance_yellow, posX , posY ,car_yaw , ):
+    def __init__(self , CONFIG_PATH:str ,blue_cones,yellow_cones , orange_cones , big_orange_cones ,posX , posY ,car_yaw , distance_blue = None ,distance_yellow = None):
         ppc_config_path = CONFIG_PATH / 'planner.yaml'
         with open(ppc_config_path) as file:
             ppc_config = yaml.load(file, Loader=yaml.FullLoader)
@@ -52,6 +52,7 @@ class Midline_delaunay():
         if self.INTERPOLATION and len(np.unique(x_mid))>1:
             distances_from_midpoints = distances(f_tire_x, f_tire_y, x_mid=best_path[:][0], y_mid=best_path[:][1])
             xy_mid_send = interpolate(x_mid=best_path[:][0], y_mid=best_path[:][1], distances=distances_from_midpoints)
+        return xy_mid#alter later according to the switch
         
             
 
