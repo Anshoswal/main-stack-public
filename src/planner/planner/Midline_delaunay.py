@@ -27,7 +27,7 @@ class Midline_delaunay():
         self.BEST_PATH = ppc_config['BEST_PATH']
         self.INTERPOLATION = ppc_config['INTERPOLATION']
         self.line_length_list = []
-
+        
         
     def get_waypoints(self):
         #not writing the stopping part in get_Waypoints 

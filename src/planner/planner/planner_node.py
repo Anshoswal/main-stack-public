@@ -50,9 +50,11 @@ class PlannerNode(Node):
         self.slam_big_orange_cones = []
         self.slam_orange_cones = []
         # perception_config_data here
+        with open(CONFIG_PATH / "topic.yaml", "r") as yaml_file:
+            self.planner_config_topic = yaml.safe_load(yaml_file)
         with open(CONFIG_PATH / "planner.yaml", "r") as yaml_file:
             self.planner_config = yaml.safe_load(yaml_file)
-
+        self.LENGTH_OF_CAR = self.planner_config['LENGTH_OF_CAR']
 
         # Declare the parameters 
         self.declare_parameter('data_source', 'simulator_slam')   # Declare the platform being used, default is eufs
@@ -112,12 +114,12 @@ class PlannerNode(Node):
         # Algorithm function calls are made here
         # Dispatch dictionary
         dispatch = {
-            ("eufs", "sim_slam"): lambda: slam_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones ,self.slam_blue_cones ,self.slam_yellow_cones ,self.slam_big_orange_cones ,self.slam_orange_cones),
+            ("eufs", "virtual_slam"): lambda: slam_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones ,self.slam_blue_cones ,self.slam_yellow_cones ,self.slam_big_orange_cones ,self.slam_orange_cones,self.LENGTH_OF_CAR),
             ("eufs", "ground_truth"): lambda: groundTruth_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones),
-            ("eufs", "sim_perception"): lambda: perc_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones),
+            ("eufs", "perception"): lambda: perc_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones),
             ("eufs", "slam"): lambda: slam_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones ,self.slam_blue_cones ,self.slam_yellow_cones ,self.slam_big_orange_cones ,self.slam_orange_cones  ),
-            ("bot", "perc_ppc"): lambda: perc_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones),
-            ("bot", "slam_ppc"): lambda: slam_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones ,self.slam_blue_cones ,self.slam_yellow_cones ,self.slam_big_orange_cones ,self.slam_orange_cones ),
+            ("bot", "perception"): lambda: perc_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones),
+            ("bot", "slam"): lambda: slam_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones ,self.slam_blue_cones ,self.slam_yellow_cones ,self.slam_big_orange_cones ,self.slam_orange_cones ),
         }#assuming for now that slam cones from simulator,virtual slam cones and bot have the same data type and hence the same function
 
         blue_cones = []
@@ -162,15 +164,15 @@ class PlannerNode(Node):
         pass
 
     def set_topic_subscriber(self, platform , data_source):
-        self.cones_topic = self.planner_config[platform]['cones'][data_source]['topic']
-        self.state_topic = self.planner_config[platform]['car_state'][data_source]['topic']
+        self.cones_topic = self.planner_config_topic[platform]['cones'][data_source]['topic']
+        self.state_topic = self.planner_config_topic[platform]['car_state'][data_source]['topic']
 
     def set_topic_publisher(self):
         #all planner publishers are related to marker arrays
         pass
 
     def set_dataType_subscriber(self , platform , data_source):
-        self.cones_data_type = self.planner_config[platform]['cones'][data_source]['data_type']
+        self.cones_data_type = self.planner_config_topic[platform]['cones'][data_source]['data_type']
 
     def destroy_node(self):
         self.get_logger().info("Node is shutting down. Calculating pipeline statistics...")
