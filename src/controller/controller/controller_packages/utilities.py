@@ -1,8 +1,10 @@
 import math
 import numpy as np
+import yaml
 
 
-def quaternionToYaw(self , x,y,z,w):
+
+def quaternionToYaw(x,y,z,w):
         yaw = math.atan2(2*(w*z+x*y),1-2*(y**2+z**2))
         return yaw
 
@@ -20,9 +22,8 @@ def curvature(v_ref:float ,waypoints:np.ndarray):#calculates average curvature a
         mean_change = np.mean(change)
         mean_change = min(0.05,mean_change)
 
-        v_ref = 6 - mean_change*66
-        k=0.8
-        return mean_change , v_ref
+        k_dynamic = k_static - mean_change*7.5
+        return mean_change , k_dynamic
 
 def line_proximity(x1,y1,x2,y2,pos_x,pos_y,yaw):#This function checks the proximity of a car from the boundary line segments in terms of perpendicular distance and angle
        # Line segment vector
@@ -49,9 +50,9 @@ def line_proximity(x1,y1,x2,y2,pos_x,pos_y,yaw):#This function checks the proxim
 
 
 
-def check_boundary(data, logger,too_close_blue = False, too_close_yellow = False): #checks line proximity for the boundary
-        too_close_blue = False
-        too_close_yellow = False
+def check_boundary(data, logger,too_close_blue = False, too_close_yellow = False, pos_x,pos_y,yaw): #checks line proximity for the boundary
+        #too_close_blue = False
+        #too_close_yellow = False
         #print(data)
         for marker in data.markers:
             x1 = marker.points[0].x
@@ -59,13 +60,13 @@ def check_boundary(data, logger,too_close_blue = False, too_close_yellow = False
             y1 = marker.points[0].y
             y2 = marker.points[1].y
 
-            normal_distance, angle_diff = line_proximity(x1,y1,x2,y2,self.pos_x,self.pos_y,self.yaw)
+            normal_distance, angle_diff = line_proximity(x1,y1,x2,y2,pos_x,pos_y,yaw)
             if marker.color.b == 1.0:
-                if normal_distance < 0.5 and angle_diff > 7.5:
+                if normal_distance < min_normal_distance and angle_diff > max_angle_diff: #have to import these variables from yaml file
                     too_close_blue = True
 
             else:
-                if normal_distance < 0.5 and angle_diff < -7.5:
+                if normal_distance < min_normal_distance and angle_diff < -max_angle_diff:
                     too_close_yellow = True
         if too_close_blue or too_close_yellow:
             logger.info(f'Too close to boundary')
@@ -88,7 +89,7 @@ def vel_controller2(prev_vel_error, v_curr, v_ref, dt, prev_integral, kp, ki, kd
     return [throttle, brake,integral,error,diffn]
 
 
-def pure_pursuit(x, y, vf, pos_x, pos_y, veh_head ,K = 0.4, L = 1.5, MAX_STEER = 22):
+def pure_pursuit(x, y, vf, pos_x, pos_y, veh_head ,K, L , MAX_STEER):
     '''
     L - Length of the car (in bicycle model?)
     look-ahead distance => tune minimum_look_ahead, K

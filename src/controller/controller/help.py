@@ -98,8 +98,6 @@ class eufs_car(Node):
         # Attributes
         self.t_start = time.time()
         self.t_runtime = 1000
-        self.t_start = time.time()
-        self.track_available = False
         self.CarState_available = False
         self.pos_x = 0
         self.pos_y = 0
