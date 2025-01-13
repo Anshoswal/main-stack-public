@@ -1,6 +1,6 @@
 waypoints :
-  topic : "/waypoint_array"
-  data_type : "MarkerArray"
+  topic : "/WaypointArray"
+  data_type : "PointArray"
 
 stopping :
   topic : "/stopping_array"

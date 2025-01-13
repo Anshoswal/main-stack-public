@@ -19,6 +19,7 @@ from eufs_msgs.srv import SetCanState
 from eufs_msgs.msg import ConeArrayWithCovariance
 from eufs_msgs.msg import CarState
 from dv_msgs.msg import Track
+from dv_msgs.msg import PointArray
 
 # from rclpy.duration import Duration
 from std_srvs.srv import Trigger
@@ -135,9 +136,9 @@ class ControllerNode(Node):
 
     def store_waypoints(self, msg):
         self.current_waypoints = np.array([[0,0]])
-        for marker in msg.markers:
-            x = marker.pose.position.x
-            y = marker.pose.position.y
+        for point in msg.points:
+            x = point.x
+            y = point.y
             self.current_waypoints = np.append(self.current_waypoints, [[x,y]], axis=0)
         self.current_waypoints = self.current_waypoints[1:]
         self.waypoints_available = True
