@@ -5,7 +5,7 @@ from numpy import cos,sin
 from itertools import combinations
 from scipy.spatial.distance import cdist
 
-def slam_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones,slam_blue_cones,slam_yellow_cones,slam_big_orange_cones,slam_orange_cones,posX , posY , car_yaw):
+def slam_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones,slam_blue_cones,slam_yellow_cones,slam_big_orange_cones,slam_orange_cones,posX , posY , car_yaw,LENGTH_OF_CAR):
     #initialization only in the slam cones 
 
     distance_blue = []
