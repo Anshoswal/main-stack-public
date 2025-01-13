@@ -5,10 +5,10 @@ import time
 from controller_packages.utilities import *
 
 class Algorithms():
-    def __init__(self, CONFIG_PATH : str, waypoints_available,CarState_available,store_path_taken,current_waypoints,blue_cones,yellow_cones,pos_x,pos_y,car_yaw,v_curr,integral,vel_error,stoppoints_available,stop_signal,too_close_blue,too_close_yellow):
-        self.t_start = time.time()
-        self.t1 = time.time() - 1
-        self.t_runtime = 1000
+    def __init__(self, CONFIG_PATH : str,t_start, waypoints_available,CarState_available,store_path_taken,current_waypoints,blue_cones,yellow_cones,pos_x,pos_y,car_yaw,v_curr,integral,vel_error,stoppoints_available,stop_signal,too_close_blue,too_close_yellow):
+        self.t_start = t_start
+        self.t1 = t_start - 1
+        
         self.waypoints_available = waypoints_available
         self.CarState_available = CarState_available
         self.store_path_taken = store_path_taken
@@ -39,8 +39,7 @@ class Algorithms():
         self.pure_pursuit = controls_config['pure_pursuit']
         self.stanley = controls_config['stanley']
         self.k_static = controls_cofig_path['k']
-
-        self.throttle_controller()
+        self.t_runtime = controls_cofig_path['t_runtime']
         pass
 
     def throttle_controller(self):
@@ -81,12 +80,6 @@ class Algorithms():
            
             # self.get_logger().info(f"Stop Signal : {self.stop_signal}, Car ")
 
-            if self.pure_pursuit:
-                self.control_pure_pursuit()
-
-            else:
-                self.control_stanley()
-
             throttle = float(throttle)
             brake = float(brake)
 
@@ -97,7 +90,7 @@ class Algorithms():
         mean_change , self.k_dynamic = curvature(self.current_waypoints)
         #print(f"mean change :{mean_change}")
         if not self.too_close_blue and not self.too_close_yellow:
-            if (self.current_waypoints[0][0]==0 and self.current_waypoints[0][1]==0):
+            if (len(self.blue_cones)<1 and len(self.yellow_cones<2) or len(self.blue_cones)<2 and len(self.yellow_cones<1)):
                 print("kaha ja rahe, wapis aao", self.current_waypoints)
                 x_p=0
                 y_p=0

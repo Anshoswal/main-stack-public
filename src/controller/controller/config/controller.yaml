@@ -1,7 +1,7 @@
 period : 0.05
 max_steer_radians : 0.384
 v_ref : 6 #in m/sec
-k : 0.8 #for lookahead distance
+k_static : 0.8 #for lookahead distance only for pure pursuit 
 min_normal_distance : 0.5 #checks normal_distance from the boundary segments
 max_angle_diff : 7.5 #in degrees, checks angle with boundary segments
 kp : 0.4
@@ -10,4 +10,6 @@ kd : 0.02
 length_of_car : 1.5
 purepursuit : True
 stanley : False
+fixed_frame : False
+t_runtime : 1000
 

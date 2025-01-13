@@ -15,3 +15,15 @@ cones :
   yellow :
     topic : "/cones_yellow_array"
     data_type : "MarkerArray"
+
+boundary :
+  topic : "/boundary"
+  data_type : "MarkerArray"
+
+state :
+  topic : "/ground_truth/state"
+  data_type : "CarState"
+
+command : 
+  topic : "/cmd"
+  data_type : "AckermannDriveStamped"

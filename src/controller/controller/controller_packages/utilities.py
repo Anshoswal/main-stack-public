@@ -1,6 +1,7 @@
 import math
 import numpy as np
 import yaml
+from visualization_msgs.msg import Marker,MarkerArray
 
 
 
@@ -50,9 +51,9 @@ def line_proximity(x1,y1,x2,y2,pos_x,pos_y,yaw):#This function checks the proxim
 
 
 
-def check_boundary(data, logger,too_close_blue = False, too_close_yellow = False, pos_x,pos_y,yaw): #checks line proximity for the boundary
-        #too_close_blue = False
-        #too_close_yellow = False
+def check_boundary(data,too_close_blue, too_close_yellow, pos_x,pos_y,car_yaw): #checks line proximity for the boundary
+        too_close_blue = False
+        too_close_yellow = False
         #print(data)
         for marker in data.markers:
             x1 = marker.points[0].x
@@ -60,7 +61,7 @@ def check_boundary(data, logger,too_close_blue = False, too_close_yellow = False
             y1 = marker.points[0].y
             y2 = marker.points[1].y
 
-            normal_distance, angle_diff = line_proximity(x1,y1,x2,y2,pos_x,pos_y,yaw)
+            normal_distance, angle_diff = line_proximity(x1,y1,x2,y2,pos_x,pos_y,car_yaw)
             if marker.color.b == 1.0:
                 if normal_distance < min_normal_distance and angle_diff > max_angle_diff: #have to import these variables from yaml file
                     too_close_blue = True
@@ -68,8 +69,6 @@ def check_boundary(data, logger,too_close_blue = False, too_close_yellow = False
             else:
                 if normal_distance < min_normal_distance and angle_diff < -max_angle_diff:
                     too_close_yellow = True
-        if too_close_blue or too_close_yellow:
-            logger.info(f'Too close to boundary')
         return too_close_blue, too_close_yellow
 
 
