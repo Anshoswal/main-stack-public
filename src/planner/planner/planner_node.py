@@ -11,7 +11,8 @@ from trajectory_packages.utilities import slam_cones , groundTruth_cones , perc_
 from std_msgs.msg import String
 import numpy as np
 # Algorithm imports here
-
+from geometric_msgs.msg import Point
+from dv_msgs.msg  import PointArray
 # Define ROOT 
 # Get path to the config folder
 PACKAGE_ROOT = Path(__file__).resolve().parent  # get the path to the package
@@ -36,7 +37,7 @@ class PlannerNode(Node):
         self.car_yaw = 0
         self.carState = CarState()
         self.CarState_available = False
-
+        self.waypoints = []
         #Initilizing cone variables
         self.blue_cones = []
         self.yellow_cones = []
@@ -49,6 +50,7 @@ class PlannerNode(Node):
         self.slam_yellow_cones = []
         self.slam_big_orange_cones = []
         self.slam_orange_cones = []
+        self.waypoints_topic = []
         # perception_config_data here
         with open(CONFIG_PATH / "topic.yaml", "r") as yaml_file:
             self.planner_config_topic = yaml.safe_load(yaml_file)
@@ -105,7 +107,7 @@ class PlannerNode(Node):
 
         # publishers here
         self.to_controller_publisher_topic = 'planner_topic'
-        self.to_controller_publisher = self.create_publisher(String, self.send_to_controller, 10)
+        self.to_controller_publisher = self.create_publisher(self.waypoint_dataType, self.waypoint_topic, 10)
 
 
 
@@ -143,7 +145,15 @@ class PlannerNode(Node):
         self.distance_blue = np.array(distance_blue)       
         self.distance_yellow = np.array(distance_yellow)
         midline_delaunay = Midline_delaunay(CONFIG_PATH, self.blue_cones, self.yellow_cones , self.orange_cones , self.big_orange_cones , self.posX , self.posY , self.car_yaw , self.distance_blue ,self.distance_yellow )
-        waypoints = midline_delaunay.get_waypoints()#send to publisher
+        self.waypoints = midline_delaunay.get_waypoints()#send to publisher
+        self.waypoints_msg = PointArray()
+        for waypoint in self.waypoints:
+            point = Point()
+            point.x = waypoint[0]
+            point.y = waypoint[1]
+            point.z = 0
+            self.waypoints_msg.append(point)
+        self.send_to_controller(self.waypoints_msg)
 
 
 
@@ -159,9 +169,11 @@ class PlannerNode(Node):
         return None  
 
 
-    def send_to_controller(self):
+    def send_to_controller(self,waypoints_msg):
         # Send the information to the topic
+        self.to_controller_publisher.publish(waypoints_msg)
         pass
+        
 
     def set_topic_subscriber(self, platform , data_source):
         self.cones_topic = self.planner_config_topic[platform]['cones'][data_source]['topic']
@@ -169,11 +181,16 @@ class PlannerNode(Node):
 
     def set_topic_publisher(self):
         #all planner publishers are related to marker arrays
-        pass
+        self.waypoint_topic = self.planner_config_topic["publisher"]["waypoints"]["topic"]
+        
+    
 
     def set_dataType_subscriber(self , platform , data_source):
         self.cones_data_type = self.planner_config_topic[platform]['cones'][data_source]['data_type']
 
+    def set_dataType_publisher(self):
+        self.waypoint_dataType = self.planner_config_topic["publisher"]["waypoints"]["data_type"]
+        
     def destroy_node(self):
         self.get_logger().info("Node is shutting down. Calculating pipeline statistics...")
         super().destroy_node()

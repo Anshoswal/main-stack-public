@@ -5,7 +5,7 @@ from numpy import cos,sin
 from itertools import combinations
 from scipy.spatial.distance import cdist
 
-def slam_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones,slam_blue_cones,slam_yellow_cones,slam_big_orange_cones,slam_orange_cones,posX , posY , car_yaw,LENGTH_OF_CAR):
+def slam_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones,slam_blue_cones,slam_yellow_cones,slam_big_orange_cones,slam_orange_cones,posX , posY , car_yaw,LENGTH_OF_CAR,FOV,FOV_RADIUS,A,B):
     #initialization only in the slam cones 
 
     distance_blue = []
@@ -75,7 +75,7 @@ def cone_in_ellipse(car_x, car_y, car_theta, cone_x, cone_y,a,b):#Checks among t
 
 
 
-def groundTruth_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones):
+def groundTruth_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones,PERCEPTION_DISTANCE):
     for cone in data.blue_cones:
         if math.sqrt(cone.point.x**2+cone.point.y**2)<=PERCEPTION_DISTANCE:#config file
             blue_cones.append([cone.point.x, cone.point.y])
@@ -126,7 +126,7 @@ def perc_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones):
     return blue_cones, yellow_cones, big_orange_cones , orange_cones
 
 
-def distance_cones(cones,car_yaw,posX,posY):
+def distance_cones(cones,car_yaw,posX,posY,LENGTH_OF_CAR):
     distance_cones = []
     heading_vector = np.array([math.cos(car_yaw), math.sin(car_yaw)])
 
@@ -252,7 +252,8 @@ def filter_points_by_distance(points, car_position, threshold=2):
     return filtered_points
 
 
-def evaluate_possible_paths(xy_mid, starting_point, n=NUMBER_OF_WAYPOINTS):
+def evaluate_possible_paths(xy_mid, starting_point, NUMBER_OF_WAYPOINTS):
+    n = NUMBER_OF_WAYPOINTS
     """
     Generates all possible paths using combinations and sorts the midpoints by distance to minimize latency.
     """
@@ -285,7 +286,7 @@ def evaluate_possible_paths(xy_mid, starting_point, n=NUMBER_OF_WAYPOINTS):
 
 
 
-def perp_bisect(self, blue_cones, yellow_cones, TRACK_WIDTH=1.5):
+def perp_bisect(blue_cones, yellow_cones, TRACK_WIDTH=1.5):
     x_mid, y_mid = [], []
     #trying to get pseudo way points by the perp bisector method
     mid_point_cones_array = np.array([[0,0]])

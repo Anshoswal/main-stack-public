@@ -26,3 +26,9 @@ eufs:
       topic: "/ground_truth/state"
     sim_perception :
       topic: "/ground_truth/state"
+
+
+publisher:
+  waypoints:
+    topic: "/WaypointArray"
+    data_type : "PointArray"

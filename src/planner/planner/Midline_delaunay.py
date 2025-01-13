@@ -28,7 +28,6 @@ class Midline_delaunay():
         self.INTERPOLATION = ppc_config['INTERPOLATION']
         self.line_length_list = []
         
-        
     def get_waypoints(self):
         #not writing the stopping part in get_Waypoints 
         #either write in main node or make a separate python file
