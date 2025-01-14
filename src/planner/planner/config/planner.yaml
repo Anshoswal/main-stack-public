@@ -9,7 +9,8 @@ ANGLE_WEIGHT : 1.4
 EDGE_WEIGHT : 0.4
 K_PATH_WEIGHT : 10
 EXPECTED_PATH_LENGTH : 1
-
+FOV: 120
+FOV_RADIUS : 15
 ellipse_dimensions:
   a : 8
   b : 4

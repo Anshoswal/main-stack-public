@@ -5,14 +5,13 @@ from numpy import cos,sin
 from itertools import combinations
 from scipy.spatial.distance import cdist
 
-def slam_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones,slam_blue_cones,slam_yellow_cones,slam_big_orange_cones,slam_orange_cones,posX , posY , car_yaw,LENGTH_OF_CAR,FOV,FOV_RADIUS,A,B):
+def slam_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones,slam_blue_cones,slam_yellow_cones,slam_big_orange_cones,slam_orange_cones,posX , posY , car_yaw,FOV,FOV_RADIUS,A,B):
     #initialization only in the slam cones 
 
     distance_blue = []
     distance_yellow = []
 
-    f_tire_x = posX + LENGTH_OF_CAR/2 * math.cos(car_yaw)#from yaml file
-    f_tire_y = posY + LENGTH_OF_CAR/2 * math.sin(car_yaw)
+    
     heading_vector = np.array([math.cos(car_yaw), math.sin(car_yaw)])
 
     #only storing cones that are seen till time t in the slam array
@@ -237,7 +236,7 @@ def midpoints_from_triangle(new_list3):
                     line_length_list.append(line_length)
                     x_mid.append(line_mid_x)
                     y_mid.append(line_mid_y)
-    
+
 
     return x_mid, y_mid, line_list , line_length_list
 
@@ -339,7 +338,7 @@ def perp_bisect(blue_cones, yellow_cones, TRACK_WIDTH=1.5):
         
 
 
-def choose_best_path(self, possible_paths, line_length_list, xy_mid, standard_width=TRACK_WIDTH, angle_weight=ANGLE_WEIGHT, edge_weight=EDGE_WEIGHT, k_path_weight=K_PATH_WEIGHT, expected_path_length_avg=EXPECTED_PATH_LENGTH):
+def choose_best_path(self, possible_paths, line_length_list, xy_mid, standard_width, angle_weight, edge_weight, k_path_weight, expected_path_length_avg):
     """
     Selects the best path based on cost function optimization.
     """
@@ -417,6 +416,11 @@ def get_boundary(sorted_blue_cones,sorted_yellow_cones):
         else:
             break
     return blue_boundary,yellow_boundary
+
+def get_tyre_coordinates(posX,posY,LENGTH_OF_CAR,car_yaw):
+    f_tire_x = posX + LENGTH_OF_CAR/2 * math.cos(car_yaw)#from yaml file
+    f_tire_y = posY + LENGTH_OF_CAR/2 * math.sin(car_yaw)
+    return f_tire_x,f_tire_y
 
 def check_track(x0,y0,x1,y1,x2,y2,index):
     """

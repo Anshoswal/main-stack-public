@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+import math
 # Import the necessary libraries here
 import rclpy                
 from rclpy.node import Node   
@@ -57,7 +57,11 @@ class PlannerNode(Node):
         with open(CONFIG_PATH / "planner.yaml", "r") as yaml_file:
             self.planner_config = yaml.safe_load(yaml_file)
         self.LENGTH_OF_CAR = self.planner_config['LENGTH_OF_CAR']
-
+        self.FOV = math.radian(self.planner_config['FOV'])
+        self.FOV_RADIUS = self.planner_config['FOV_RADIUS']
+        self.semi_major_axis = self.planner_config['ellipse_dimensions']['a']
+        self.semi_minor_axis = self.planner_config['ellipse_dimensions']['b']
+        self.PERCEPTION_DISTANCE = self.planner_config['PERCEPTION_DISTANCE']
         # Declare the parameters 
         self.declare_parameter('data_source', 'simulator_slam')   # Declare the platform being used, default is eufs
         self.declare_parameter('platform', 'eufs')
@@ -68,13 +72,13 @@ class PlannerNode(Node):
 
 
         # Raise an error and kill the node if the platform is not bot or eufs
-        if self.platform not in ['bot', 'eufs']: 
-            self.get_logger().error("Invalid system parameter. Choose either 'bot' or 'eufs'. Shutting the Node down...")
+        if self.data_source not in ['sim_slam', 'ground_truth','sim_perception','slam','perc_ppc','slam_ppc']: 
+            self.get_logger().error("Invalid system parameter. Choose either 'sim_slam', 'ground_truth','sim_perception','slam','perc_ppc','slam_ppc'. Shutting the Node down...")
             self.destroy_node() 
 
 
-        if self.data_source not in ['sim_slam', 'sim_perception']: 
-            self.get_logger().error("Invalid system parameter. Choose either 'sim_slam','ground_truth' or 'sim_perception'. Shutting the Node down...")
+        if self.platform not in ['eufs', 'bot']: 
+            self.get_logger().error("Invalid system parameter. Choose either 'eufs' or 'bot'. Shutting the Node down...")
             self.destroy_node() 
 
 
@@ -116,12 +120,12 @@ class PlannerNode(Node):
         # Algorithm function calls are made here
         # Dispatch dictionary
         dispatch = {
-            ("eufs", "virtual_slam"): lambda: slam_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones ,self.slam_blue_cones ,self.slam_yellow_cones ,self.slam_big_orange_cones ,self.slam_orange_cones,self.LENGTH_OF_CAR),
-            ("eufs", "ground_truth"): lambda: groundTruth_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones),
-            ("eufs", "perception"): lambda: perc_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones),
+            ("eufs", "sim_slam"): lambda: slam_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones ,self.slam_blue_cones ,self.slam_yellow_cones ,self.slam_big_orange_cones ,self.slam_orange_cones,self.posX , self.posY ,self. car_yaw,self.FOV,self.FOV_RADIUS,self.semi_major_axis,self.semi_minor_axis),
+            ("eufs", "ground_truth"): lambda: groundTruth_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones,self.PERCEPTION_DISTANCE),
+            ("eufs", "sim_perception"): lambda: perc_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones),
             ("eufs", "slam"): lambda: slam_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones ,self.slam_blue_cones ,self.slam_yellow_cones ,self.slam_big_orange_cones ,self.slam_orange_cones  ),
-            ("bot", "perception"): lambda: perc_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones),
-            ("bot", "slam"): lambda: slam_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones ,self.slam_blue_cones ,self.slam_yellow_cones ,self.slam_big_orange_cones ,self.slam_orange_cones ),
+            ("bot", "perc_ppc"): lambda: perc_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones),
+            ("bot", "slam_ppc"): lambda: slam_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones ,self.slam_blue_cones ,self.slam_yellow_cones ,self.slam_big_orange_cones ,self.slam_orange_cones ),
         }#assuming for now that slam cones from simulator,virtual slam cones and bot have the same data type and hence the same function
 
         blue_cones = []
@@ -136,8 +140,8 @@ class PlannerNode(Node):
         else:
             print("Invalid combination of platform and data source.")
         
-        distance_blue = distance_cones(blue_cones,self.car_yaw,self.posX,self.posY)
-        distance_yellow = distance_cones(yellow_cones,self.car_yaw,self.posX,self.posY)
+        distance_blue = distance_cones(blue_cones,self.car_yaw,self.posX,self.posY,self.LENGTH_OF_CAR)
+        distance_yellow = distance_cones(yellow_cones,self.car_yaw,self.posX,self.posY,self.LENGTH_OF_CAR)
         self.blue_cones = np.array(blue_cones)
         self.yellow_cones = np.array(yellow_cones)
         self.big_orange_cones = np.array(big_orange_cones)
@@ -183,8 +187,6 @@ class PlannerNode(Node):
         #all planner publishers are related to marker arrays
         self.waypoint_topic = self.planner_config_topic["publisher"]["waypoints"]["topic"]
         
-    
-
     def set_dataType_subscriber(self , platform , data_source):
         self.cones_data_type = self.planner_config_topic[platform]['cones'][data_source]['data_type']
 

@@ -2,7 +2,7 @@
 import yaml
 import math
 import numpy as np
-from trajectory_packages.utilities import interpolate , check_track , get_boundary ,filter_points_by_distance , evaluate_possible_paths , choose_best_path ,perp_bisect , distances , get_best_path , triangle_with_colour , midpoints_from_triangle
+from trajectory_packages.utilities import interpolate , check_track , get_boundary ,filter_points_by_distance , evaluate_possible_paths , choose_best_path ,perp_bisect , distances , get_best_path , triangle_with_colour , midpoints_from_triangle,get_tyre_coordinates
 from scipy.spatial import Delaunay
 
 class Midline_delaunay():
@@ -27,15 +27,15 @@ class Midline_delaunay():
         self.BEST_PATH = ppc_config['BEST_PATH']
         self.INTERPOLATION = ppc_config['INTERPOLATION']
         self.line_length_list = []
+        self.NUMBER_OF_WAYPOINTS = ppc_config['NUMBER_OF_WAYPOINTS']
         
     def get_waypoints(self):
         #not writing the stopping part in get_Waypoints 
         #either write in main node or make a separate python file
-        f_tire_x = self.posX + self.LENGTH_OF_CAR/2 * math.cos(self.car_yaw)
-        f_tire_y = self.posY + self.LENGTH_OF_CAR/2 * math.sin(self.car_yaw)
-        self.yellow_boundary , self.blue_boundary = self.boundary()
+        f_tire_x,f_tire_y = get_tyre_coordinates(self.posX,self.posY,self.LENGTH_OF_CAR,self.car_yaw)
+        self.yellow_boundary , self.blue_boundary = self.boundary(self.blue_cones,self.yellow_cones,self.distance_blue,self.distance_yellow)
         try:
-            x_mid, y_mid, line_list , self.line_length_list = self.midline_delaunay()
+            x_mid, y_mid, line_list , self.line_length_list = self.delaunay_waypoints()
             xy_mid = np.column_stack((x_mid,y_mid))
             if self.BEST_PATH:
                 best_path = self.get_best_path()
@@ -57,25 +57,23 @@ class Midline_delaunay():
 
 
 
-    def boundary(self):
-        """
-        """
-        sorted_blue_cones,sorted_yellow_cones = self.get_sorted_cones()
+    def boundary(self,blue_cones,yellow_cones,distance_blue,distance_yellow):
+        sorted_blue_cones,sorted_yellow_cones = self.get_sorted_cones(blue_cones,yellow_cones,distance_blue,distance_yellow)
         return get_boundary(sorted_blue_cones,sorted_yellow_cones)
 
 
-    def get_sorted_cones(self):
+    def get_sorted_cones(self,blue_cones,yellow_cones,distance_blue,distance_yellow):
         #this type of function alos in utilitiea?
-        sorted_dist_blue = np.argsort(self.distance_blue)
-        sorted_dist_yellow = np.argsort(self.distance_yellow)
+        sorted_dist_blue = np.argsort(distance_blue)
+        sorted_dist_yellow = np.argsort(distance_yellow)
         
-        sorted_blue_cones = self.blue_cones[sorted_dist_blue]
-        sorted_yellow_cones = self.yellow_cones[sorted_dist_yellow]
+        sorted_blue_cones = blue_cones[sorted_dist_blue]
+        sorted_yellow_cones = yellow_cones[sorted_dist_yellow]
         return sorted_blue_cones , sorted_yellow_cones
     
 
-    def midline_delaunay(self):
-        new_current_detected_cones = np.append(self.blue_cones,self.yellow_cones, axis = 0)
+    def delaunay_waypoints(self,blue_cones,yellow_cones):
+        new_current_detected_cones = np.append(blue_cones,yellow_cones, axis = 0)
         new_current_detected_cones = np.array(new_current_detected_cones)
     
         #Obtaining the delaunay triangles and list of vertices
@@ -96,9 +94,9 @@ class Midline_delaunay():
         return x_mid, y_mid, line_list , line_length_list
     
 
-    def get_best_path(self):
-        xy_mid_send = filter_points_by_distance(xy_mid_send ,(self.posX,self.posY))
-        possible_paths = evaluate_possible_paths(xy_mid_send , [self.posX , self.posY] )#possible paths is currently a list of arrays 
+    def get_best_path(self,posX,posY):
+        xy_mid_send = filter_points_by_distance(xy_mid_send ,(posX,posY))
+        possible_paths = evaluate_possible_paths(xy_mid_send , [posX , posY],self.NUMBER_OF_WAYPOINTS )#possible paths is currently a list of arrays 
         print("length of possible paths",len(possible_paths))
         best_path,min_path_cost = choose_best_path(possible_paths ,self.line_length_list ,xy_mid_send)
         return best_path
