@@ -2,7 +2,7 @@
 import yaml
 import math
 import numpy as np
-from trajectory_packages.utilities import interpolate , check_track , get_boundary ,filter_points_by_distance , evaluate_possible_paths , choose_best_path ,perp_bisect , distances , get_best_path , triangle_with_colour , midpoints_from_triangle,get_tyre_coordinates
+from planner.trajectory_packages.utilities import interpolate , check_track , get_boundary ,filter_points_by_distance , evaluate_possible_paths , choose_best_path ,perp_bisect , distances  , triangle_with_colour , midpoints_from_triangle,get_tyre_coordinates
 from scipy.spatial import Delaunay
 
 class Midline_delaunay():

@@ -5,14 +5,14 @@ import rclpy
 from rclpy.node import Node   
 import yaml   
 from pathlib import Path         
-from Midline_delaunay import Midline_delaunay
-from trajectory_packages.utilities import slam_cones , groundTruth_cones , perc_cones , distance_cones
+from planner.Midline_delaunay import Midline_delaunay
+from planner.trajectory_packages.utilities import slam_cones , groundTruth_cones , perc_cones , distance_cones
 # Add the necessary msg type imports here
 from std_msgs.msg import String
 import numpy as np
 # Algorithm imports here
-from geometric_msgs.msg import Point
-from dv_msgs.msg  import PointArray
+from geometry_msgs.msg import Point
+#from dv_msgs.msg  import PointArray
 # Define ROOT 
 # Get path to the config folder
 PACKAGE_ROOT = Path(__file__).resolve().parent  # get the path to the package
