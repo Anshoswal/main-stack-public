@@ -12,7 +12,7 @@ from std_msgs.msg import String
 import numpy as np
 # Algorithm imports here
 from geometry_msgs.msg import Point
-from dv_msgs.msg import PointArray
+from dv_msgs.msg import PointArray, Track,Cone
 from eufs_msgs.msg import ConeArrayWithCovariance
 from eufs_msgs.msg import CarState
 # Define ROOT 
@@ -61,7 +61,7 @@ class PlannerNode(Node):
         self.semi_minor_axis = self.planner_config['ellipse_dimensions']['b']
         self.PERCEPTION_DISTANCE = self.planner_config['PERCEPTION_DISTANCE']
         # Declare the parameters 
-        self.declare_parameter('data_source', 'simulator_slam')   # Declare the platform being used, default is eufs
+        self.declare_parameter('data_source', 'ground_truth')   # Declare the platform being used, default is eufs
         self.declare_parameter('platform', 'eufs')
 
         # Get the parameter values
@@ -113,7 +113,8 @@ class PlannerNode(Node):
         # publishers here
         self.to_controller_publisher_topic = 'planner_topic'
         self.to_controller_publisher = self.create_publisher(eval(self.waypoint_dataType), self.waypoint_topic, 10)
-
+        self.publisher_blue_cones = self.create_publisher(eval(self.cones_data_type_publisher),self.blue_cones_topic,10)
+        self.publisher_yellow_cones = self.create_publisher(eval(self.cones_data_type_publisher),self.yellow_cones_topic,10)
 
 
 
@@ -129,7 +130,6 @@ class PlannerNode(Node):
             ("bot", "perc_ppc"): lambda: perc_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones),
             ("bot", "slam_ppc"): lambda: slam_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones ,self.slam_blue_cones ,self.slam_yellow_cones ,self.slam_big_orange_cones ,self.slam_orange_cones ),
         }#assuming for now that slam cones from simulator,virtual slam cones and bot have the same data type and hence the same function
-
         blue_cones = []
         yellow_cones = []
         big_orange_cones = []
@@ -160,7 +160,37 @@ class PlannerNode(Node):
             point.y = waypoint[1]
             point.z = 0.0
             self.waypoints_msg.points.append(point)
+        
         self.send_to_controller(self.waypoints_msg)
+        self.cones_to_controller(self.blue_cones,self.yellow_cones)
+
+    def cones_to_controller(self,blue_cones,yellow_cones):
+        data_blue = Track()
+        data_yellow = Track()
+        bcones = []
+        ycones = []
+
+        for cone in blue_cones:
+            b_cone = Cone()
+            b_cone.location.x = cone[0]
+            b_cone.location.y = cone[1]
+            b_cone.location.z = 0.0
+            b_cone.color = 0
+            bcones.append(b_cone)
+        
+        for cone in yellow_cones:
+            y_cone = Cone()
+            y_cone.location.x = cone[0]
+            y_cone.location.y = cone[1]
+            y_cone.location.z = 0.0
+            y_cone.color = 0
+            ycones.append(b_cone)
+        
+        data_blue.track = bcones
+        data_yellow.track = ycones
+
+        self.publisher_blue_cones.publish(data_blue)
+        self.publisher_yellow_cones.publish(data_yellow)
         
 
 
@@ -190,12 +220,16 @@ class PlannerNode(Node):
     def set_topic_publisher(self):
         #all planner publishers are related to marker arrays
         self.waypoint_topic = self.planner_config_topic["publisher"]["waypoints"]["topic"]
+        self.blue_cones_topic = self.planner_config_topic["publisher"]["cones"]["blue"]["topic"]
+        self.yellow_cones_topic = self.planner_config_topic["publisher"]["cones"]["yellow"]["topic"]
         
     def set_dataType_subscriber(self , platform , data_source):
         self.cones_data_type = self.planner_config_topic[platform]['cones'][data_source]['data_type']
+        
 
     def set_dataType_publisher(self):
         self.waypoint_dataType = self.planner_config_topic["publisher"]["waypoints"]["data_type"]
+        self.cones_data_type_publisher = self.planner_config_topic["publisher"]["cones"]["yellow"]["data_type"]
         
     def destroy_node(self):
         self.get_logger().info("Node is shutting down. Calculating pipeline statistics...")

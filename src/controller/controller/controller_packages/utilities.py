@@ -4,6 +4,9 @@ import yaml
 from visualization_msgs.msg import Marker,MarkerArray
 
 
+k_static = 0.8
+min_normal_distance = 0.5
+max_angle_diff = 7.5
 
 def quaternionToYaw(x,y,z,w):
         yaw = math.atan2(2*(w*z+x*y),1-2*(y**2+z**2))
