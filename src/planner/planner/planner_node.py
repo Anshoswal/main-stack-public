@@ -184,8 +184,7 @@ class PlannerNode(Node):
             y_cone.location.y = cone[1]
             y_cone.location.z = 0.0
             y_cone.color = 0
-            ycones.append(b_cone)
-        
+            ycones.append(y_cone)
         data_blue.track = bcones
         data_yellow.track = ycones
 

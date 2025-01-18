@@ -44,11 +44,10 @@ class Midline_delaunay():
             if self.BEST_PATH:
                 best_path = self.get_best_path(self.posX,self.posY)
                 print("best path",best_path)
-            print("xy_mid try",xy_mid)
         except:
             x_mid, y_mid, mid_point_cones_array, our_points = perp_bisect(self.blue_cones,self.yellow_cones, self.TRACK_WIDTH)
             xy_mid = np.column_stack((x_mid,y_mid))
-
+        xy_mid = np.unique(xy_mid, axis=0)
         '''
         This below part of code is used to interpolate points
         '''

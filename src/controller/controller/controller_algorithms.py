@@ -94,8 +94,7 @@ class Algorithms():
         if not self.too_close_blue and not self.too_close_yellow:
             if (len(self.blue_cones.track)<1 and len(self.yellow_cones.track)<2) or (len(self.blue_cones.track)<2 and len(self.yellow_cones.track)<1):
                 print("kaha ja rahe, wapis aao", self.current_waypoints)
-                x_p=0
-                y_p=0
+                
                 # print(steer_pp)
                 if len(self.blue_cones) > len(self.yellow_cones):
                     steer_pp = self.max_steer_radians
@@ -107,11 +106,16 @@ class Algorithms():
                     #print(f'bluecones:{self.old_detected_blue_cones.markers}yellowcones:{self.old_detected_yellow_cones.markers}')
                 
             else:
-                # print(self.current_waypoints)
                 try:
-                    [steer_pp, x_p, y_p] = pure_pursuit(x = self.current_waypoints[:,0], y = self.current_waypoints[:,1], 
-                                                        vf=self.v_curr, pos_x=self.pos_x, pos_y=self.pos_y, 
-                                                        veh_head=self.car_yaw, K = self.k_static, L=self.car_length, MAX_STEER = self.max_steer_radians)
+                    print(self.current_waypoints[:,0])
+                    [steer_pp, x_p, y_p,steer,theta] = pure_pursuit(x = self.current_waypoints[:,0], y = self.current_waypoints[:,1], 
+                                                        vf=self.v_curr, pos_x=0, pos_y=0, 
+                                                        veh_head=0, K = self.k_static, L=self.car_length, MAX_STEER = self.max_steer_radians)
+                    print(steer_pp)
+                    print(f" Car state {self.pos_x,self.pos_y, self.car_yaw}")
+                    print('x_p,y_p',x_p,y_p)
+                    print('v_curr',self.v_curr)
+                    print('theta,steer',theta,steer)
                 except:
                     pass
 

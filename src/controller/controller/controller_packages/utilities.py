@@ -125,7 +125,7 @@ def pure_pursuit(x, y, vf, pos_x, pos_y, veh_head ,K, L , MAX_STEER):
     waypoint_y = points_ahead[final_waypoint_index,1]
     
     # Angle of the vector connecting car to the waypoint
-    theta = math.atan((waypoint_y - pos_y)/(waypoint_x - pos_x)) 
+    theta = math.atan((waypoint_y - pos_y)/(waypoint_x - pos_x))
 
     if (waypoint_y - pos_y)*(waypoint_x - pos_x) < 0:
         if (waypoint_y - pos_y) > 0:
@@ -138,14 +138,14 @@ def pure_pursuit(x, y, vf, pos_x, pos_y, veh_head ,K, L , MAX_STEER):
     alpha_pp = theta - veh_head 
     waypoint_distance = ((pos_x - waypoint_x)**2 + (pos_y - waypoint_y)**2)**0.5
 
-    steer = math.atan(2*L*math.sin(alpha_pp)/waypoint_distance) # steer in radians
+    steer = math.atan(2*L*math.sin(alpha_pp/waypoint_distance))# steer in radians
 
-    max_steer_radians = MAX_STEER * math.pi / 180
+    max_steer_radians = MAX_STEER 
 
     #Clip the steering to max values
     final_steer = max( - max_steer_radians, min(steer , max_steer_radians))
     
-    return [final_steer, waypoint_x, waypoint_y]
+    return [final_steer, waypoint_x, waypoint_y,steer,theta]
 
 def stanley_steering(final_x, final_y, v_curr, pos_x, pos_y, car_yaw):
     """
@@ -164,10 +164,11 @@ def stanley_steering(final_x, final_y, v_curr, pos_x, pos_y, car_yaw):
     """
     if len(final_x) != len(final_y) or len(final_x) == 0:
         raise ValueError("Path coordinate arrays must be non-empty and of equal length.")
+    k_soft = 3 #To prevent steering angle blowing up at low speeds
+    k = 0.03 * v_curr# Controller gain
     
-    k = 2.5  # Controller gain
-    max_steering_angle = np.deg2rad(24)  # Maximum steering angle in radians
-    front_axle_offset = 1.7  # Distance from vehicle position to front axle
+    max_steering_angle = np.deg2rad(22)  # Maximum steering angle in radians
+    front_axle_offset = 0.75  # Distance from vehicle position to front axle
 
     # Compute the position of the front tire
     f_tire_x = pos_x + front_axle_offset * math.cos(car_yaw)
@@ -175,24 +176,37 @@ def stanley_steering(final_x, final_y, v_curr, pos_x, pos_y, car_yaw):
 
     # Compute path slopes and store them
     theta_p = [math.atan2(final_y[i+1] - final_y[i], final_x[i+1] - final_x[i]) for i in range(len(final_x)-1)]
-    theta_p.append(math.atan2(final_y[0] - final_y[-1], final_x[0] - final_x[-1]))
+    theta_p.append(math.atan2(final_y[0] - final_y[-1], final_x[0] - final_x[-1]))      
 
     # Compute the nearest path point to the front tire
     distances = [np.hypot(final_x[i] - f_tire_x, final_y[i] - f_tire_y) for i in range(len(final_x))]
+    #theta = [math.atan2(final_y[i]-f_tire_y, final_x[i]-f_tire_x) for i in range(len(final_x))]
+    #nearest2 = np.argsort(distances)[:2]
+    #min_cte_index = nearest2[0] 
+    #x1,y1 = final_x[min_cte_index],final_y[min_cte_index]
+    #min_cte_index1 = nearest2[1]
+    #x2,y2 = final_x[min_cte_index1],final_y[min_cte_index1]
+    #m = (y2-y1)/(x2-x1)
+    #c = y2 - x2*m
+    #perpd = abs(m * f_tire_x + c - f_tire_y)/math.sqrt(m**2 +1)
+    #min_cte = perpd
+    #min_cte = (perpd + distances[min_cte_index])/2
     min_cte_index = np.argmin(distances)
-    min_cte = distances[min_cte_index]
-
-    # Determine if the front axle should correct to the left or right
+    min_cte = distances[min_cte_index]#* math.cos(theta[min_cte_index])  
+    # Determine if the front axle should correct to the left or right  
     front_axle_vector = np.array([math.cos(car_yaw), math.sin(car_yaw)])
+
     nearest_path_vector = np.array([final_x[min_cte_index] - f_tire_x, final_y[min_cte_index] - f_tire_y])
     cross_prod = np.cross(front_axle_vector, nearest_path_vector)
     cte = -min_cte if cross_prod < 0 else min_cte
-
+    #print(f"{min_cte_index1} and {min_cte_index}")
     # if (abs(cte) > 1):
     #     cte=0
     # Calculate steering angle
-    yaw_error = car_yaw - theta_p[min_cte_index]
-    steering_angle = (yaw_error/10 + math.atan((k * cte) / (v_curr + 1)))
+    yaw_error = theta_p[min_cte_index] - car_yaw
+    steering_angle = (yaw_error/5 + math.atan((k * cte) / (v_curr + k_soft)))
+    #steering_angle = math.atan((k * cte) / (v_curr + k_soft))
+    #print(f"yaw term {yaw_error}, cte: {cte}, cte term{math.atan((k * cte) / (v_curr+1))}, steer :{steering_angle} , index : {min_cte_index}")
     steering_angle = max(-max_steering_angle, min(max_steering_angle, steering_angle))
 
     return steering_angle, final_x[min_cte_index], final_y[min_cte_index],min_cte_index
