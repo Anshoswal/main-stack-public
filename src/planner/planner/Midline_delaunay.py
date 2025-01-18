@@ -32,8 +32,7 @@ class Midline_delaunay():
     def get_waypoints(self):
         #not writing the stopping part in get_Waypoints 
         #either write in main node or make a separate python file
-        print('blue cones',self.blue_cones)
-        print('yellow cones',self.yellow_cones)
+
         f_tire_x,f_tire_y = get_tyre_coordinates(self.posX,self.posY,self.LENGTH_OF_CAR,self.car_yaw)
         self.yellow_boundary , self.blue_boundary = self.boundary(self.blue_cones,self.yellow_cones,self.distance_blue,self.distance_yellow)
         
