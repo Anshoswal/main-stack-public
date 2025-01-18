@@ -121,7 +121,7 @@ class PlannerNode(Node):
     def get_map(self, data):
         # Algorithm function calls are made here
         # Dispatch dictionary
-        
+      
         dispatch = {
             ("eufs", "sim_slam"): lambda: slam_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones ,self.slam_blue_cones ,self.slam_yellow_cones ,self.slam_big_orange_cones ,self.slam_orange_cones,self.posX , self.posY ,self. car_yaw,self.FOV,self.FOV_RADIUS,self.semi_major_axis,self.semi_minor_axis),
             ("eufs", "ground_truth"): lambda: groundTruth_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones,self.PERCEPTION_DISTANCE),
@@ -141,7 +141,7 @@ class PlannerNode(Node):
             blue_cones, yellow_cones, big_orange_cones , orange_cones = get_cones_function()
         else:
             print("Invalid combination of platform and data source.")
-       
+
         distance_blue = distance_cones(blue_cones,self.car_yaw,self.posX,self.posY,self.LENGTH_OF_CAR)
         distance_yellow = distance_cones(yellow_cones,self.car_yaw,self.posX,self.posY,self.LENGTH_OF_CAR)
         self.blue_cones = np.array(blue_cones)

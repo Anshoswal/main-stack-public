@@ -34,7 +34,8 @@ def slam_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones,slam_b
         if is_in_slam(posX,posY,car_yaw,cone.point.x,cone.point.y,FOV,FOV_RADIUS):
             if [cone.point.x,cone.point.y] not in slam_orange_cones:
                 slam_orange_cones.append([cone.point.x, cone.point.y])
-
+    print('inside utilities',slam_blue_cones)
+    print("inside utils",slam_yellow_cones)
     #FINDING CONES IN OUR REGION OF INTEREST FROM THE SLAM CONES
     for cone in slam_blue_cones:
        
