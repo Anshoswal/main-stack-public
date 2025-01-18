@@ -61,7 +61,7 @@ class PlannerNode(Node):
         self.semi_minor_axis = self.planner_config['ellipse_dimensions']['b']
         self.PERCEPTION_DISTANCE = self.planner_config['PERCEPTION_DISTANCE']
         # Declare the parameters 
-        self.declare_parameter('data_source', 'ground_truth')   # Declare the platform being used, default is eufs
+        self.declare_parameter('data_source', 'sim_slam')   # Declare the platform being used, default is eufs
         self.declare_parameter('platform', 'eufs')
 
         # Get the parameter values
@@ -152,7 +152,7 @@ class PlannerNode(Node):
         self.distance_yellow = np.array(distance_yellow)
         midline_delaunay = Midline_delaunay(CONFIG_PATH, self.blue_cones, self.yellow_cones , self.orange_cones , self.big_orange_cones , self.posX , self.posY , self.car_yaw , self.distance_blue ,self.distance_yellow )
         self.waypoints = midline_delaunay.get_waypoints()#send to publisher
-
+        print('waypoinmts ',self.waypoints)
         self.waypoints_msg = PointArray()
         for waypoint in self.waypoints:
             point = Point()

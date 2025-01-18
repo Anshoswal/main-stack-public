@@ -290,6 +290,7 @@ def evaluate_possible_paths(xy_mid, starting_point, NUMBER_OF_WAYPOINTS):
 def perp_bisect(blue_cones, yellow_cones, TRACK_WIDTH=1.5):
     x_mid, y_mid = [], []
     #trying to get pseudo way points by the perp bisector method
+    perp_cones = [[0,0]]
     mid_point_cones_array = np.array([[0,0]])
     if len(blue_cones)>=2:
         perp_cones = blue_cones
