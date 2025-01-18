@@ -90,6 +90,8 @@ class Algorithms():
     def control_pure_pursuit(self):
         steer_pp=0
         mean_change , self.k_dynamic = curvature(self.v_ref,self.current_waypoints)
+        x_p=0
+        y_p =0
         #print(f"mean change :{mean_change}")
         if not self.too_close_blue and not self.too_close_yellow:
             if (len(self.blue_cones.track)<1 and len(self.yellow_cones.track)<2) or (len(self.blue_cones.track)<2 and len(self.yellow_cones.track)<1):
