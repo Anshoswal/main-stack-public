@@ -4,16 +4,14 @@ import yaml
 from visualization_msgs.msg import Marker,MarkerArray
 
 
-k_static = 0.8
-min_normal_distance = 0.5
-max_angle_diff = 7.5
+
 
 def quaternionToYaw(x,y,z,w):
         yaw = math.atan2(2*(w*z+x*y),1-2*(y**2+z**2))
         return yaw
 
 
-def curvature(v_ref:float ,waypoints:np.ndarray):#calculates average curvature and creates an inverse relation between curvature and lookahead distance
+def curvature(waypoints:np.ndarray, k_static, v_ref:float):#calculates average curvature and creates an inverse relation between curvature and lookahead distance
         
         x = waypoints[:,0]
         y = waypoints[:,1]
@@ -27,7 +25,8 @@ def curvature(v_ref:float ,waypoints:np.ndarray):#calculates average curvature a
         mean_change = min(0.05,mean_change)
 
         k_dynamic = k_static - mean_change*7.5
-        return mean_change , k_dynamic
+        v_ref_dynamic = v_ref - mean_change*2.7
+        return mean_change, k_dynamic, v_ref_dynamic
 
 def line_proximity(x1,y1,x2,y2,pos_x,pos_y,yaw):#This function checks the proximity of a car from the boundary line segments in terms of perpendicular distance and angle
        # Line segment vector
@@ -54,7 +53,7 @@ def line_proximity(x1,y1,x2,y2,pos_x,pos_y,yaw):#This function checks the proxim
 
 
 
-def check_boundary(data,too_close_blue, too_close_yellow, pos_x,pos_y,car_yaw): #checks line proximity for the boundary
+def check_boundary(data,too_close_blue, too_close_yellow, pos_x,pos_y,car_yaw, min_normal_distance, max_angle_diff): #checks line proximity for the boundary
         too_close_blue = False
         too_close_yellow = False
         #print(data)

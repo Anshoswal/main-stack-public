@@ -67,6 +67,8 @@ class ControllerNode(Node):
         self.subscribe_carstate = self.controller_config_data['get_carstate']
         self.pure_pursuit = self.controller_config_data['pure_pursuit']
         self.stanley = self.controller_config_data['stanley']
+        self.min_normal_dist = self.controller_config_data['min_normal_distance']
+        self.max_angle_diff = self.controller_config_data['max_angle_diff']
 
         # subscribers here 
         with open(CONFIG_PATH / "topics.yaml", "r") as yaml_file:
@@ -163,7 +165,7 @@ class ControllerNode(Node):
         return None
     
     def boundary_constraints(self,data):#to check for boundary constraints incase the car is too close to the edge
-        self.too_close_blue,self.too_close_yellow = check_boundary(data,self.too_close_blue,self.too_close_yellow,self.pos_x,self.pos_y,self.car_yaw)
+        self.too_close_blue,self.too_close_yellow = check_boundary(data,self.too_close_blue,self.too_close_yellow,self.pos_x,self.pos_y,self.car_yaw, self.min_normal_dist,self.max_angle_diff)
         if self.too_close_blue:
             self.get_logger().info(f'Too close to blue boundary')
         if self.too_close_yellow:

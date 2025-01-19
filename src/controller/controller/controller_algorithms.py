@@ -65,6 +65,9 @@ class Algorithms():
             '''
             If Orange cones aren't visible after being seen by car, the car applies brakes to come to stop
             '''
+
+            mean_change,self.k_dynamic, self.v_ref_dynamic = curvature(self.current_waypoints,self.k_static, self.v_ref)
+
             if((self.stoppoints_available == True or self.stop_signal == True)):
                 throttle = 0
                 brake = 1
@@ -72,7 +75,7 @@ class Algorithms():
                 
             else:
                 [throttle,brake,self.integral,self.vel_error,diffn ] = vel_controller2(kp=self.kp, ki=self.ki, kd=self.kd,
-                                                                        v_curr=self.v_curr, v_ref=self.v_ref,
+                                                                        v_curr=self.v_curr, v_ref=self.v_ref_dynamic,
                                                                         dt=dt_vel, prev_integral=self.integral, prev_vel_error=self.vel_error)
                 print('tthrotle', throttle)
                 print('bbrake',brake)
@@ -89,7 +92,7 @@ class Algorithms():
         
     def control_pure_pursuit(self):
         steer_pp=0
-        mean_change , self.k_dynamic = curvature(self.v_ref,self.current_waypoints)
+        
         x_p=0
         y_p =0
         #print(f"mean change :{mean_change}")
@@ -98,7 +101,7 @@ class Algorithms():
                 print("kaha ja rahe, wapis aao", self.current_waypoints)
                 
                 # print(steer_pp)
-                if len(self.blue_cones) > len(self.yellow_cones):
+                if len(self.blue_cones.track) > len(self.yellow_cones.track):
                     steer_pp = self.max_steer_radians
                     print("case3")
                     #print(f'bluecones:{self.old_detected_blue_cones.markers}yellowcones:{self.old_detected_yellow_cones.markers}')
