@@ -1,0 +1,17 @@
+# use master["stack"][master["stack_i"]] which is "sim"
+
+# dont change here
+stack:  [fake, sim,  bot, ads, none]
+track:  [fake, acceleration, static inspection a, static inspection b, skidpad, none]
+perception: [fake, mono, dual, lidar, none]
+slam: [fake, ekf, none]
+planner: [fake, midline, delaunay, none]
+controller: [fake, stanley, none]
+
+# change here
+stack_i : 1
+track_i : 0
+perception_i : 1
+slam_i : -1
+planner_i : -1
+controller_i : -1
