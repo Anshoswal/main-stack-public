@@ -25,7 +25,7 @@ def generate_launch_description():
     if perception != "none":
         perception_node = Node(
             package='perception',
-            executable='perception',
+            executable='perception_node',
             name='perception_node',
             parameters=[               
                 {'pipeline': perception},
