@@ -1,0 +1,83 @@
+cam_topics:
+  bot:
+    left: # Comment/uncomment the camera topic you want to use
+      topic: "/zed_left/zed_node_1/left/image_rect_color" # Left
+      # topic: "/zed_left/zed_node_1/right/image_rect_color" # Right
+
+    right: # Comment/uncomment the camera topic you want to use
+      topic: "/zed_right/zed_node_0/left/image_rect_color" # Left
+      # topic: "/zed_right/zed_node_0/right/image_rect_color" # Right
+
+  eufs:
+    left: 
+      topic: "/zed/left/image_rect_color"
+    right: 
+      topic: "/zed/right/image_rect_color"
+
+constants_mono:
+  # Main configuration
+  image_size:
+      width: 1280
+      height: 720
+
+
+  # Profiles for each device, with option to inherit from defaults
+  profiles:
+
+    big_orange:
+      eufs:
+        a: 0.362
+        b: -0.948
+
+      bot:
+        a: 0.5392
+        b: -1.027
+
+      unknown1:
+        a: 0.69
+        b: -0.99
+    
+    small:
+      eufs:
+        a: 0.146
+        b: -1.21
+
+      bot:
+        a: 0.2492
+        b: -1.20
+        
+      unknown2:
+        a: 0.536
+        b: -0.918
+    
+      unknown3:
+        a: 0.54
+        b: -0.95
+
+constants_fusion:
+  tx : 0.06  # for new bot
+  ty : 0.056
+  tz : -0.02
+  fx : 483.0294494628906
+  fy : 483.0294494628906
+  cx : 312.8288879394531
+  cy : 193.5349578857422
+
+image_process_params:
+  resize: 'False'
+  smoothen: 'False'
+  blur: 'False'
+# and so on...
+
+perc_publish_topic:
+    topic: '/perception/cones'
+
+yolo_paths:
+    # yolo_weights_path = '/home/atharav/iitb-racing-ros2/src/perception/perception/object_detect/yolov5/weights/yolo_eufs_best.pt' # yolo_eufs_best.pt
+    # yolo_weights_path : '/home/atharav/Downloads/eufs_v5_best.pt'
+    yolo_weights_path : '/home/atharav/IITBDV-main-stack/src/perception/perception/object_detect/weights/v11_eufs_best.engine'
+    yolo_data_path : 'object_detect/yolov5/models/data.yaml'
+    kpr_path : "Keypoint_Detection/Weights/23_loss_0.38.pt"
+    conf_thresh : 0.6 # 0.5 and below is super dangerous
+    image_size : [1280,720] # Only for yolov5
+
