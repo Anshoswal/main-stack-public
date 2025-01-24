@@ -8,8 +8,8 @@ kp : 0.4
 ki : 0.001
 kd : 0.02
 length_of_car : 1.5
-purepursuit : True
+pure_pursuit : True
 stanley : False
-fixed_frame : False
+get_carstate : True
 t_runtime : 1000
 

@@ -10,11 +10,11 @@ cones :
 
   blue :
     topic : "/cones_blue_array"
-    data_type : "MarkerArray"
+    data_type : "Track"
 
   yellow :
     topic : "/cones_yellow_array"
-    data_type : "MarkerArray"
+    data_type : "Track"
 
 boundary :
   topic : "/boundary"

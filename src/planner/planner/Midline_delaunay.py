@@ -2,7 +2,7 @@
 import yaml
 import math
 import numpy as np
-from trajectory_packages.utilities import interpolate , check_track , get_boundary ,filter_points_by_distance , evaluate_possible_paths , choose_best_path ,perp_bisect , distances , get_best_path , triangle_with_colour , midpoints_from_triangle,get_tyre_coordinates
+from planner.trajectory_packages.utilities import interpolate , check_track , get_boundary ,filter_points_by_distance , evaluate_possible_paths , choose_best_path ,perp_bisect , distances  , triangle_with_colour , midpoints_from_triangle,get_tyre_coordinates
 from scipy.spatial import Delaunay
 
 class Midline_delaunay():
@@ -32,19 +32,21 @@ class Midline_delaunay():
     def get_waypoints(self):
         #not writing the stopping part in get_Waypoints 
         #either write in main node or make a separate python file
+
         f_tire_x,f_tire_y = get_tyre_coordinates(self.posX,self.posY,self.LENGTH_OF_CAR,self.car_yaw)
         self.yellow_boundary , self.blue_boundary = self.boundary(self.blue_cones,self.yellow_cones,self.distance_blue,self.distance_yellow)
+        
+        
         try:
-            x_mid, y_mid, line_list , self.line_length_list = self.delaunay_waypoints()
+            x_mid, y_mid, line_list , self.line_length_list = self.delaunay_waypoints(self.blue_cones,self.yellow_cones)
             xy_mid = np.column_stack((x_mid,y_mid))
             if self.BEST_PATH:
-                best_path = self.get_best_path()
+                best_path = self.get_best_path(self.posX,self.posY)
                 print("best path",best_path)
-            print("xy_mid try",xy_mid)
         except:
             x_mid, y_mid, mid_point_cones_array, our_points = perp_bisect(self.blue_cones,self.yellow_cones, self.TRACK_WIDTH)
             xy_mid = np.column_stack((x_mid,y_mid))
-
+        xy_mid = np.unique(xy_mid, axis=0)
         '''
         This below part of code is used to interpolate points
         '''

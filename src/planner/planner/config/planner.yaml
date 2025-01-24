@@ -16,6 +16,6 @@ ellipse_dimensions:
   b : 4
 
 LENGTH_OF_CAR : 1.5
-BEST_PATH : True
+BEST_PATH : False
 TRACK_WIDTH : 3
 

@@ -32,3 +32,10 @@ publisher:
   waypoints:
     topic: "/WaypointArray"
     data_type : "PointArray"
+  cones :
+    blue :
+      topic : "/cones_blue_array"
+      data_type: "Track"
+    yellow :
+      topic : "/cones_yellow_array"
+      data_type: "Track"

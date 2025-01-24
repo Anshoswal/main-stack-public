@@ -20,15 +20,15 @@ from eufs_msgs.srv import SetCanState
 from eufs_msgs.msg import ConeArrayWithCovariance
 from eufs_msgs.msg import CarState
 from dv_msgs.msg import Track
-from dv_msgs.msg import PointArray
+from dv_msgs.msg import PointArray, Track, Cone
 
 # from rclpy.duration import Duration
 from std_srvs.srv import Trigger
 from builtin_interfaces.msg import Duration
  
 # Algorithm imports here
-from controller_algorithms import Algorithms
-from controller_packages.utilities import *
+from controller.controller_algorithms import Algorithms
+from controller.controller_packages.utilities import *
 
 # Define ROOT 
 
@@ -64,9 +64,12 @@ class ControllerNode(Node):
         with open(CONFIG_PATH / "controller.yaml", "r") as yaml_file:
             self.controller_config_data = yaml.safe_load(yaml_file)
         self.period = self.controller_config_data['period']
-        self.fixed_frame = self.controller_config_data['fixed_frame']
+        self.t_runtime = self.controller_config_data['t_runtime']
+        self.subscribe_carstate = self.controller_config_data['get_carstate']
         self.pure_pursuit = self.controller_config_data['pure_pursuit']
         self.stanley = self.controller_config_data['stanley']
+        self.min_normal_dist = self.controller_config_data['min_normal_distance']
+        self.max_angle_diff = self.controller_config_data['max_angle_diff']
 
         # subscribers here 
         with open(CONFIG_PATH / "topics.yaml", "r") as yaml_file:
@@ -94,7 +97,7 @@ class ControllerNode(Node):
             self.car_state_topic = self.controller_topic_data['state']['topic']
             self.car_state_dtype = self.controller_topic_data['state']['data_type']
             self.car_state_subscription = self.create_subscription(
-                self.car_state_dtype,
+                eval(self.car_state_dtype),
                 self.car_state_topic,
                 self.get_carstate,
                 10
@@ -115,7 +118,7 @@ class ControllerNode(Node):
         self.planner_waypoints_topic = self.controller_topic_data['waypoints']['topic']
         self.planner_waypoints_dtype = self.controller_topic_data['waypoints']['data_type']
         self.waypoints_subscription = self.create_subscription(
-            self.planner_waypoints_dtype,                       
+            eval(self.planner_waypoints_dtype),                       
             self.planner_waypoints_topic,                  
             self.store_waypoints,     
             10                            
@@ -123,7 +126,7 @@ class ControllerNode(Node):
         self.planner_stopping_topic = self.controller_topic_data['stopping']['topic']
         self.planner_stopping_dtype = self.controller_topic_data['stopping']['data_type']
         self.waypoints_subscription = self.create_subscription(
-            self.planner_stopping_dtype,                       
+            eval(self.planner_stopping_dtype),                       
             self.planner_stopping_topic,                  
             self.store_stoppoints,     
             10                            
@@ -134,14 +137,14 @@ class ControllerNode(Node):
         self.yellow_cones_topic = self.controller_topic_data['cones']['yellow']['topic']
         self.cones_dtype = self.controller_topic_data['cones']['blue']['data_type']
         self.cones_subscription = self.create_subscription(
-            self.cones_dtype,                       
+            eval(self.cones_dtype),                       
             self.blue_cones_topic,                  
             self.store_blue_cones,     
             10                            
         )
 
         self.cones_subscription = self.create_subscription(
-            self.cones_dtype,                       
+            eval(self.cones_dtype),                       
             self.yellow_cones_topic,                  
             self.store_yellow_cones,     
             10                            
@@ -150,9 +153,9 @@ class ControllerNode(Node):
         self.boundary_topic = self.controller_topic_data['boundary']['topic']
         self.boundary_dtype = self.controller_topic_data['boundary']['data_type']
         self.boundary_subscription = self.create_subscription(
-            self.boundary_dtype,
+            eval(self.boundary_dtype),
             self.boundary_topic,
-            self.boundary_contraints,
+            self.boundary_constraints,
             10
         )
         #timer callback
@@ -173,7 +176,7 @@ class ControllerNode(Node):
             self.current_waypoints = np.append(self.current_waypoints, [[x,y]], axis=0)
         self.current_waypoints = self.current_waypoints[1:]
         self.waypoints_available = True
-        print('waypoints',self.current_waypoints)
+        #print('waypoints',self.current_waypoints)
 
         return None
     
@@ -191,7 +194,7 @@ class ControllerNode(Node):
         return None
     
     def boundary_constraints(self,data):#to check for boundary constraints incase the car is too close to the edge
-        self.too_close_blue,self.too_close_yellow = check_boundary(data,self.too_close_blue,self.too_close_yellow,self.pos_x,self.pos_y,self.car_yaw)
+        self.too_close_blue,self.too_close_yellow = check_boundary(data,self.too_close_blue,self.too_close_yellow,self.pos_x,self.pos_y,self.car_yaw, self.min_normal_dist,self.max_angle_diff)
         if self.too_close_blue:
             self.get_logger().info(f'Too close to blue boundary')
         if self.too_close_yellow:
@@ -220,8 +223,8 @@ class ControllerNode(Node):
         else:
             if time.time() < self.t_start + self.t_runtime :
                 control_callback = Algorithms(CONFIG_PATH,self.t_start,self.waypoints_available,self.CarState_available,self.store_path_taken,self.current_waypoints,self.blue_cones,self.yellow_cones,self.pos_x,self.pos_y,self.car_yaw,self.v_curr,self.integral,self.vel_error,self.stoppoints_available,self.stop_signal,self.too_close_blue,self.too_close_yellow)
-                self.throttle,  self.brake = Algorithms.throttle_controller()
-                self.steer_pp, self.x_p, self.y_p = Algorithms.control_pure_pursuit()
+                self.throttle,  self.brake = control_callback.throttle_controller()
+                self.steer_pp, self.x_p, self.y_p = control_callback.control_pure_pursuit()
                 self.get_logger().info(f'Speed:{self.v_curr:.4f} Accn:{float(self.throttle - self.brake):.4f} Steer:{float(-self.steer_pp):.4f} Time:{time.time() - self.t_start:.4f}')
                 self.send_to_vcu()
             else :

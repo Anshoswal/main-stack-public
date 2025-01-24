@@ -34,7 +34,8 @@ def slam_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones,slam_b
         if is_in_slam(posX,posY,car_yaw,cone.point.x,cone.point.y,FOV,FOV_RADIUS):
             if [cone.point.x,cone.point.y] not in slam_orange_cones:
                 slam_orange_cones.append([cone.point.x, cone.point.y])
-
+    print('inside utilities',slam_blue_cones)
+    print("inside utils",slam_yellow_cones)
     #FINDING CONES IN OUR REGION OF INTEREST FROM THE SLAM CONES
     for cone in slam_blue_cones:
        
@@ -74,13 +75,14 @@ def cone_in_ellipse(car_x, car_y, car_theta, cone_x, cone_y,a,b):#Checks among t
 
 
 
+
 def groundTruth_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones,PERCEPTION_DISTANCE):
     for cone in data.blue_cones:
         if math.sqrt(cone.point.x**2+cone.point.y**2)<=PERCEPTION_DISTANCE:#config file
-            blue_cones.append([cone.point.x, cone.point.y])
+            blue_cones.append([cone.point.x, cone.point.y,0])
     for cone in data.yellow_cones:
         if math.sqrt(cone.point.x**2+cone.point.y**2)<=PERCEPTION_DISTANCE:
-            yellow_cones.append([cone.point.x, cone.point.y])
+            yellow_cones.append([cone.point.x, cone.point.y,1])
     for cone in data.big_orange_cones:
         if math.sqrt(cone.point.x**2+cone.point.y**2)<=PERCEPTION_DISTANCE:
             big_orange_cones.append([cone.point.x, cone.point.y])
@@ -199,9 +201,10 @@ def interpolate(x_mid:list, y_mid:list, distances:list) -> np.ndarray:
     return xy_mid
 
  
+def quaternionToYaw(x,y,z,w):
+    yaw = math.atan2(2*(w*z+x*y),1-2*(y**2+z**2))
+    return yaw
 
-
-  
 
 
 def triangle_with_colour(new_current_detected_cones,index):
@@ -288,15 +291,16 @@ def evaluate_possible_paths(xy_mid, starting_point, NUMBER_OF_WAYPOINTS):
 def perp_bisect(blue_cones, yellow_cones, TRACK_WIDTH=1.5):
     x_mid, y_mid = [], []
     #trying to get pseudo way points by the perp bisector method
+    perp_cones = [[0,0]]
     mid_point_cones_array = np.array([[0,0]])
     if len(blue_cones)>=2:
         perp_cones = blue_cones
-        print('case1')
-        print(f'bluecones:{blue_cones}yellowcones:{yellow_cones}')
+        #print('case1')
+        #print(f'bluecones:{blue_cones}yellowcones:{yellow_cones}')
     elif len(yellow_cones)>=2:
         perp_cones = yellow_cones
-        print('case2')
-        print(f'bluecones:{blue_cones}yellowcones:{yellow_cones}')
+        #print('case2')
+        #print(f'bluecones:{blue_cones}yellowcones:{yellow_cones}')
     
     dist_cones = []
     for cone in perp_cones:
@@ -460,6 +464,3 @@ def check_track(x0,y0,x1,y1,x2,y2,index):
         return False
     
 
-def quaternionToYaw(self,x,y,z,w):
-    yaw = math.atan2(2*(w*z+x*y),1-2*(y**2+z**2))
-    return yaw

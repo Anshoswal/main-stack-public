@@ -5,14 +5,16 @@ import rclpy
 from rclpy.node import Node   
 import yaml   
 from pathlib import Path         
-from Midline_delaunay import Midline_delaunay
-from trajectory_packages.utilities import slam_cones , groundTruth_cones , perc_cones , distance_cones
+from planner.Midline_delaunay import Midline_delaunay
+from planner.trajectory_packages.utilities import slam_cones , groundTruth_cones , perc_cones , distance_cones , quaternionToYaw
 # Add the necessary msg type imports here
 from std_msgs.msg import String
 import numpy as np
 # Algorithm imports here
-from geometric_msgs.msg import Point
-from dv_msgs.msg  import PointArray
+from geometry_msgs.msg import Point
+from dv_msgs.msg import PointArray, Track,Cone
+from eufs_msgs.msg import ConeArrayWithCovariance
+from eufs_msgs.msg import CarState
 # Define ROOT 
 # Get path to the config folder
 PACKAGE_ROOT = Path(__file__).resolve().parent  # get the path to the package
@@ -20,11 +22,8 @@ CONFIG_PATH = PACKAGE_ROOT / 'config'      # path to the config folder
 
 
 # Ensure the config path exists (optional check)
-if not CONFIG_PATH.exists():
-    raise FileNotFoundError(f"Config folder not found at {CONFIG_PATH}")
-
-
-
+# if not CONFIG_PATH.exists():
+#     raise FileNotFoundError(f"Config folder not found at {CONFIG_PATH}")
 
 class PlannerNode(Node):
     def __init__(self):
@@ -35,7 +34,6 @@ class PlannerNode(Node):
         self.posX = 0
         self.posY = 0
         self.car_yaw = 0
-        self.carState = CarState()
         self.CarState_available = False
         self.waypoints = []
         #Initilizing cone variables
@@ -52,12 +50,12 @@ class PlannerNode(Node):
         self.slam_orange_cones = []
         self.waypoints_topic = []
         # perception_config_data here
-        with open(CONFIG_PATH / "topic.yaml", "r") as yaml_file:
+        with open(CONFIG_PATH / "topics.yaml", "r") as yaml_file:
             self.planner_config_topic = yaml.safe_load(yaml_file)
         with open(CONFIG_PATH / "planner.yaml", "r") as yaml_file:
             self.planner_config = yaml.safe_load(yaml_file)
         self.LENGTH_OF_CAR = self.planner_config['LENGTH_OF_CAR']
-        self.FOV = math.radian(self.planner_config['FOV'])
+        self.FOV = math.radians(self.planner_config['FOV'])
         self.FOV_RADIUS = self.planner_config['FOV_RADIUS']
         self.semi_major_axis = self.planner_config['ellipse_dimensions']['a']
         self.semi_minor_axis = self.planner_config['ellipse_dimensions']['b']
@@ -86,6 +84,7 @@ class PlannerNode(Node):
         self.set_topic_subscriber(self.platform , self.data_source)
         self.set_dataType_subscriber(self.platform , self.data_source)
         self.set_topic_publisher()
+        self.set_dataType_publisher()
 
         # Define the QoS profile
         qos_policy = rclpy.qos.QoSProfile(reliability=rclpy.qos.ReliabilityPolicy.BEST_EFFORT,
@@ -95,8 +94,10 @@ class PlannerNode(Node):
 
         # subscribers here 
         #note: can do if else here fro slam wince in that both cones and car state are published on the same topic
+        print('self.cones data type',self.cones_data_type)
+        print('self.cones topic ',self.cones_topic)
         self.cones_subscription = self.create_subscription(
-            self.cones_data_type,                       
+            eval(self.cones_data_type),                       
             self.cones_topic,                  
             self.get_map,     
             qos_profile=qos_policy            
@@ -111,14 +112,16 @@ class PlannerNode(Node):
 
         # publishers here
         self.to_controller_publisher_topic = 'planner_topic'
-        self.to_controller_publisher = self.create_publisher(self.waypoint_dataType, self.waypoint_topic, 10)
-
+        self.to_controller_publisher = self.create_publisher(eval(self.waypoint_dataType), self.waypoint_topic, 10)
+        self.publisher_blue_cones = self.create_publisher(eval(self.cones_data_type_publisher),self.blue_cones_topic,10)
+        self.publisher_yellow_cones = self.create_publisher(eval(self.cones_data_type_publisher),self.yellow_cones_topic,10)
 
 
 
     def get_map(self, data):
         # Algorithm function calls are made here
         # Dispatch dictionary
+      
         dispatch = {
             ("eufs", "sim_slam"): lambda: slam_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones ,self.slam_blue_cones ,self.slam_yellow_cones ,self.slam_big_orange_cones ,self.slam_orange_cones,self.posX , self.posY ,self. car_yaw,self.FOV,self.FOV_RADIUS,self.semi_major_axis,self.semi_minor_axis),
             ("eufs", "ground_truth"): lambda: groundTruth_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones,self.PERCEPTION_DISTANCE),
@@ -127,7 +130,6 @@ class PlannerNode(Node):
             ("bot", "perc_ppc"): lambda: perc_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones),
             ("bot", "slam_ppc"): lambda: slam_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones ,self.slam_blue_cones ,self.slam_yellow_cones ,self.slam_big_orange_cones ,self.slam_orange_cones ),
         }#assuming for now that slam cones from simulator,virtual slam cones and bot have the same data type and hence the same function
-
         blue_cones = []
         yellow_cones = []
         big_orange_cones = []
@@ -139,7 +141,7 @@ class PlannerNode(Node):
             blue_cones, yellow_cones, big_orange_cones , orange_cones = get_cones_function()
         else:
             print("Invalid combination of platform and data source.")
-        
+
         distance_blue = distance_cones(blue_cones,self.car_yaw,self.posX,self.posY,self.LENGTH_OF_CAR)
         distance_yellow = distance_cones(yellow_cones,self.car_yaw,self.posX,self.posY,self.LENGTH_OF_CAR)
         self.blue_cones = np.array(blue_cones)
@@ -150,14 +152,45 @@ class PlannerNode(Node):
         self.distance_yellow = np.array(distance_yellow)
         midline_delaunay = Midline_delaunay(CONFIG_PATH, self.blue_cones, self.yellow_cones , self.orange_cones , self.big_orange_cones , self.posX , self.posY , self.car_yaw , self.distance_blue ,self.distance_yellow )
         self.waypoints = midline_delaunay.get_waypoints()#send to publisher
+        print('waypoinmts ',self.waypoints)
         self.waypoints_msg = PointArray()
         for waypoint in self.waypoints:
             point = Point()
             point.x = waypoint[0]
             point.y = waypoint[1]
-            point.z = 0
-            self.waypoints_msg.append(point)
+            point.z = 0.0
+            self.waypoints_msg.points.append(point)
+        
         self.send_to_controller(self.waypoints_msg)
+        self.cones_to_controller(self.blue_cones,self.yellow_cones)
+
+    def cones_to_controller(self,blue_cones,yellow_cones):
+        data_blue = Track()
+        data_yellow = Track()
+        bcones = []
+        ycones = []
+
+        for cone in blue_cones:
+            b_cone = Cone()
+            b_cone.location.x = cone[0]
+            b_cone.location.y = cone[1]
+            b_cone.location.z = 0.0
+            b_cone.color = 0
+            bcones.append(b_cone)
+        
+        for cone in yellow_cones:
+            y_cone = Cone()
+            y_cone.location.x = cone[0]
+            y_cone.location.y = cone[1]
+            y_cone.location.z = 0.0
+            y_cone.color = 0
+            ycones.append(y_cone)
+        data_blue.track = bcones
+        data_yellow.track = ycones
+
+        self.publisher_blue_cones.publish(data_blue)
+        self.publisher_yellow_cones.publish(data_yellow)
+        
 
 
 
@@ -167,7 +200,7 @@ class PlannerNode(Node):
         self.posX = data.pose.pose.position.x
         self.posY = data.pose.pose.position.y
         x,y,z,w = (data.pose.pose.orientation.x,data.pose.pose.orientation.y,data.pose.pose.orientation.z,data.pose.pose.orientation.w)
-        self.car_yaw = self.quaternionToYaw(x,y,z,w)
+        self.car_yaw = quaternionToYaw(x,y,z,w)
         self.carState = data
         self.CarState_available = True
         return None  
@@ -186,17 +219,22 @@ class PlannerNode(Node):
     def set_topic_publisher(self):
         #all planner publishers are related to marker arrays
         self.waypoint_topic = self.planner_config_topic["publisher"]["waypoints"]["topic"]
+        self.blue_cones_topic = self.planner_config_topic["publisher"]["cones"]["blue"]["topic"]
+        self.yellow_cones_topic = self.planner_config_topic["publisher"]["cones"]["yellow"]["topic"]
         
     def set_dataType_subscriber(self , platform , data_source):
         self.cones_data_type = self.planner_config_topic[platform]['cones'][data_source]['data_type']
+        
 
     def set_dataType_publisher(self):
         self.waypoint_dataType = self.planner_config_topic["publisher"]["waypoints"]["data_type"]
+        self.cones_data_type_publisher = self.planner_config_topic["publisher"]["cones"]["yellow"]["data_type"]
         
     def destroy_node(self):
         self.get_logger().info("Node is shutting down. Calculating pipeline statistics...")
         super().destroy_node()
     
+  
 def main(args=None):
     rclpy.init(args=args)
     node = PlannerNode()
