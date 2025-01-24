@@ -62,14 +62,14 @@ class PlannerNode(Node):
         self.semi_major_axis = self.planner_config['ellipse_dimensions']['a']
         self.semi_minor_axis = self.planner_config['ellipse_dimensions']['b']
         self.PERCEPTION_DISTANCE = self.planner_config['PERCEPTION_DISTANCE']
+
         # Declare the parameters 
-        self.declare_parameter('data_source', 'simulator_slam')   # Declare the platform being used, default is eufs
+        self.declare_parameter('data_source', 'perc_ppc')   # Declare the platform being used, default is eufs
         self.declare_parameter('platform', 'eufs')
 
         # Get the parameter values
         self.platform = self.get_parameter('platform').get_parameter_value().string_value
         self.data_source = self.get_parameter('data_source').get_parameter_value().string_value
-
 
         # Raise an error and kill the node if the platform is not bot or eufs
         if self.data_source not in ['sim_slam', 'ground_truth','sim_perception','slam','perc_ppc','slam_ppc']: 

@@ -24,6 +24,18 @@ state :
   topic : "/ground_truth/state"
   data_type : "CarState"
 
-command : 
-  topic : "/cmd"
-  data_type : "AckermannDriveStamped"
+bot:
+  command : 
+    topic : "/cmd1"
+    data_type : "ControlCommand"
+
+  velocity:
+    topic: "/rpm_data"
+    data_type : "Float64"
+
+eufs:
+  command : 
+    topic : "/cmd"
+    data_type : "AckermannDriveStamped"
+
+

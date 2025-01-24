@@ -7,6 +7,7 @@ import yaml
 from pathlib import Path 
 import time
 import math
+from math import pi
 
 
 # Add the necessary msg type imports here
@@ -71,6 +72,24 @@ class ControllerNode(Node):
         with open(CONFIG_PATH / "topics.yaml", "r") as yaml_file:
             self.controller_topic_data = yaml.safe_load(yaml_file)
         #for carstate
+        
+        #declare params
+        self.declare_parameter('data_source', 'simulator_slam')   # Declare the platform being used, default is eufs
+        self.declare_parameter('platform', 'eufs')
+        # Get the parameter values
+        self.platform = self.get_parameter('platform').get_parameter_value().string_value
+        self.data_source = self.get_parameter('data_source').get_parameter_value().string_value
+
+        if self.data_source not in ['sim_slam', 'ground_truth','sim_perception','slam','perc_ppc','slam_ppc']: 
+            self.get_logger().error("Invalid system for controller parameter. Choose either 'sim_slam', 'ground_truth','sim_perception','slam','perc_ppc','slam_ppc'. Shutting the Node down...")
+            self.destroy_node() 
+
+
+        if self.platform not in ['eufs', 'bot']: 
+            self.get_logger().error("Invalid system for controller parameter. Choose either 'eufs' or 'bot'. Shutting the Node down...")
+            self.destroy_node() 
+
+
         if self.fixed_frame:
             self.car_state_topic = self.controller_topic_data['state']['topic']
             self.car_state_dtype = self.controller_topic_data['state']['data_type']
@@ -80,6 +99,18 @@ class ControllerNode(Node):
                 self.get_carstate,
                 10
             )
+        
+        if self.platform == "bot":
+            self.velocity_topic = self.controller_topic_data['state']['topic']
+            self.velocity_dtype = self.controller_topic_data['state']['data_type']      
+            self.car_state_subscription = self.create_subscription(
+                self.velocity_dtype,
+                self.velocity_topic,
+                self.get_rpmdata,
+                10
+            )
+
+
         #for waypoints and stoppoints
         self.planner_waypoints_topic = self.controller_topic_data['waypoints']['topic']
         self.planner_waypoints_dtype = self.controller_topic_data['waypoints']['data_type']
@@ -128,8 +159,8 @@ class ControllerNode(Node):
         self.timer = self.create_timer(self.period, self.control_callback)
 
         # publishers here
-        self.to_vcu_publisher_topic = self.controller_topic_data['command']['topic']
-        self.to_vcu_publisher_dtype = self.controller_topic_data['command']['data_type']
+        self.to_vcu_publisher_topic = self.controller_topic_data[self.platform]['command']['topic']
+        self.to_vcu_publisher_dtype = self.controller_topic_data[self.platform]['command']['data_type']
         self.publish_cmd = self.create_publisher(self.to_vcu_publisher_dtype, self.to_vcu_publisher_topic, 5)
         
         
@@ -177,6 +208,10 @@ class ControllerNode(Node):
         self.CarState_available = True
         return None 
     
+    def get_rpmdata(self, msg):
+            self.v_curr = (msg.data*2*pi*self.wheel_rad)/60
+            return None
+
     def control_callback(self):
         if (self.waypoints_available and self.CarState_available) == False:
             self.t_start = time.time()
