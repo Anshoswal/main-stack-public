@@ -58,6 +58,27 @@ def slam_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones,slam_b
     return blue_cones, yellow_cones, big_orange_cones , orange_cones
 
 
+def perc_cones_bot(msg,blue_cones,yellow_cones,big_orange_cones,orange_cones):
+    for cone in msg.track:
+        if((cone.color == 0)):
+            blue_cones.append([cone.location.x, cone.location.y,0])
+        elif(cone.color == 1):
+            yellow_cones.append([cone.location.x, cone.location.y,1])
+        elif(cone.color == 2):
+        #     if cone.location.x < 0 and cone.location.y < 1: # this limit on y of big orange cone is for testing only as our track is smaller than actual acceleration
+        #         big_orange_cones_left.append([cone.location.x, cone.location.y])
+        #     elif cone.location.x > 0 and cone.location.y < 1:
+        #         big_orange_cones_right.append([cone.location.x, cone.location.y])
+            big_orange_cones.append([cone.location.x, cone.location.y])
+        elif(cone.color == 3):
+            # if cone.location.x < 0:
+            #     orange_cones_left.append([cone.location.x, cone.location.y])
+            # else:
+            #     orange_cones_right.append([cone.location.x, cone.location.y])
+            orange_cones.append([cone.location.x, cone.location.y])
+    return blue_cones,yellow_cones,big_orange_cones,orange_cones
+
+
 
 def cone_in_ellipse(car_x, car_y, car_theta, cone_x, cone_y,a,b):#Checks among the cones if they lie in an ellipse around the car at time t
     # Translate cone position relative to car

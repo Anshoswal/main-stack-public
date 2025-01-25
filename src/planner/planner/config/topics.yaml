@@ -1,9 +1,11 @@
 bot:
-  perc_ppc:
-    topic: "/ConesCartesian"
-    data_type: "Track"
-  slam_ppc:
-    topic: "/slam_data"
+  cones:
+    perc_ppc:
+      topic: "/ConesCartesian"
+      data_type: "Track"
+    slam_ppc:
+      topic: "/slam_data"
+
 
 eufs:
   cones:

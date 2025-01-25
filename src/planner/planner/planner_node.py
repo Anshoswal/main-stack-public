@@ -6,7 +6,7 @@ from rclpy.node import Node
 import yaml   
 from pathlib import Path         
 from planner.Midline_delaunay import Midline_delaunay
-from planner.trajectory_packages.utilities import slam_cones , groundTruth_cones , perc_cones , distance_cones , quaternionToYaw
+from planner.trajectory_packages.utilities import slam_cones , groundTruth_cones , perc_cones , distance_cones , quaternionToYaw , perc_cones_bot
 # Add the necessary msg type imports here
 from std_msgs.msg import String
 import numpy as np
@@ -102,13 +102,13 @@ class PlannerNode(Node):
             self.get_map,     
             qos_profile=qos_policy            
         )
-        
-        self.carState_subscription = self.create_subscription(
-            CarState,                     
-            self.state_topic ,                  
-            self.get_carState,    
-            qos_profile=qos_policy                          
-        )
+        if self.platform == 'eufs':
+            self.carState_subscription = self.create_subscription(
+                CarState,                     
+                self.state_topic ,                  
+                self.get_carState,    
+                qos_profile=qos_policy                          
+            )
 
         # publishers here
         self.to_controller_publisher_topic = 'planner_topic'
@@ -127,7 +127,7 @@ class PlannerNode(Node):
             ("eufs", "ground_truth"): lambda: groundTruth_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones,self.PERCEPTION_DISTANCE),
             ("eufs", "sim_perception"): lambda: perc_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones),
             ("eufs", "slam"): lambda: slam_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones ,self.slam_blue_cones ,self.slam_yellow_cones ,self.slam_big_orange_cones ,self.slam_orange_cones  ),
-            ("bot", "perc_ppc"): lambda: perc_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones),
+            ("bot", "perc_ppc"): lambda: perc_cones_bot(data,blue_cones,yellow_cones,big_orange_cones,orange_cones),
             ("bot", "slam_ppc"): lambda: slam_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones ,self.slam_blue_cones ,self.slam_yellow_cones ,self.slam_big_orange_cones ,self.slam_orange_cones ),
         }#assuming for now that slam cones from simulator,virtual slam cones and bot have the same data type and hence the same function
         blue_cones = []
@@ -141,7 +141,8 @@ class PlannerNode(Node):
             blue_cones, yellow_cones, big_orange_cones , orange_cones = get_cones_function()
         else:
             print("Invalid combination of platform and data source.")
-
+        print("yellow cones",yellow_cones)
+        print("blue cones ",blue_cones)
         distance_blue = distance_cones(blue_cones,self.car_yaw,self.posX,self.posY,self.LENGTH_OF_CAR)
         distance_yellow = distance_cones(yellow_cones,self.car_yaw,self.posX,self.posY,self.LENGTH_OF_CAR)
         self.blue_cones = np.array(blue_cones)
@@ -214,7 +215,9 @@ class PlannerNode(Node):
 
     def set_topic_subscriber(self, platform , data_source):
         self.cones_topic = self.planner_config_topic[platform]['cones'][data_source]['topic']
-        self.state_topic = self.planner_config_topic[platform]['car_state'][data_source]['topic']
+        if self.platform == 'eufs':
+
+            self.state_topic = self.planner_config_topic[platform]['car_state'][data_source]['topic']
 
     def set_topic_publisher(self):
         #all planner publishers are related to marker arrays

@@ -59,7 +59,7 @@ class ControllerNode(Node):
         self.current_waypoints = None
         self.too_close_blue = False
         self.too_close_yellow = False
-
+        self.fixed_frame = False
         # parameters here
         with open(CONFIG_PATH / "controller.yaml", "r") as yaml_file:
             self.controller_config_data = yaml.safe_load(yaml_file)
@@ -107,7 +107,7 @@ class ControllerNode(Node):
             self.velocity_topic = self.controller_topic_data['state']['topic']
             self.velocity_dtype = self.controller_topic_data['state']['data_type']      
             self.car_state_subscription = self.create_subscription(
-                self.velocity_dtype,
+                eval(self.velocity_dtype),
                 self.velocity_topic,
                 self.get_rpmdata,
                 10
@@ -164,6 +164,8 @@ class ControllerNode(Node):
         # publishers here
         self.to_vcu_publisher_topic = self.controller_topic_data[self.platform]['command']['topic']
         self.to_vcu_publisher_dtype = self.controller_topic_data[self.platform]['command']['data_type']
+        print("to vcu data type",self.to_vcu_publisher_dtype)
+        print("to vcu data topic",self.to_vcu_publisher_topic)
         self.publish_cmd = self.create_publisher(self.to_vcu_publisher_dtype, self.to_vcu_publisher_topic, 5)
         
         

@@ -35,8 +35,13 @@ class Midline_delaunay():
 
         f_tire_x,f_tire_y = get_tyre_coordinates(self.posX,self.posY,self.LENGTH_OF_CAR,self.car_yaw)
         self.yellow_boundary , self.blue_boundary = self.boundary(self.blue_cones,self.yellow_cones,self.distance_blue,self.distance_yellow)
-        
-        
+    
+    
+        x_mid, y_mid, line_list , self.line_length_list = self.delaunay_waypoints(self.blue_cones,self.yellow_cones)
+        xy_mid = np.column_stack((x_mid,y_mid))
+        if self.BEST_PATH:
+            best_path = self.get_best_path(self.posX,self.posY)
+            print("best path",best_path)
         try:
             x_mid, y_mid, line_list , self.line_length_list = self.delaunay_waypoints(self.blue_cones,self.yellow_cones)
             xy_mid = np.column_stack((x_mid,y_mid))
