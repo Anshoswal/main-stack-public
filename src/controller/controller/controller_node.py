@@ -19,7 +19,7 @@ from eufs_msgs.msg import CanState
 from eufs_msgs.srv import SetCanState
 from eufs_msgs.msg import ConeArrayWithCovariance
 from eufs_msgs.msg import CarState
-from dv_msgs.msg import Track
+from dv_msgs.msg import Track,ControlCommand
 from dv_msgs.msg import PointArray, Track, Cone
 
 # from rclpy.duration import Duration
@@ -104,8 +104,8 @@ class ControllerNode(Node):
             )
         
         if self.platform == "bot":
-            self.velocity_topic = self.controller_topic_data['state']['topic']
-            self.velocity_dtype = self.controller_topic_data['state']['data_type']      
+            self.velocity_topic = self.controller_topic_data['bot']['velocity']['topic']
+            self.velocity_dtype = self.controller_topic_data['bot']['velocity']['data_type']      
             self.car_state_subscription = self.create_subscription(
                 eval(self.velocity_dtype),
                 self.velocity_topic,
@@ -164,8 +164,8 @@ class ControllerNode(Node):
         # publishers here
         self.to_vcu_publisher_topic = self.controller_topic_data[self.platform]['command']['topic']
         self.to_vcu_publisher_dtype = self.controller_topic_data[self.platform]['command']['data_type']
-        print("to vcu data type",self.to_vcu_publisher_dtype)
-        print("to vcu data topic",self.to_vcu_publisher_topic)
+        print("to vcu data type:",self.to_vcu_publisher_dtype)
+        print("to vcu data topic:",self.to_vcu_publisher_topic)
         self.publish_cmd = self.create_publisher(self.to_vcu_publisher_dtype, self.to_vcu_publisher_topic, 5)
         
         
@@ -236,13 +236,19 @@ class ControllerNode(Node):
 
     def send_to_vcu(self):
         # Send the information to the topic
-        control_msg = AckermannDriveStamped()
-        control_msg.drive.steering_angle = float(self.steer_pp)
-        control_msg.drive.acceleration = float(self.throttle - self.brake)
-        # control_msg.drive.acceleration = 0.05
-        self.publish_cmd.publish(control_msg)
-        pass
+        if self.platform == 'eufs':
+            control_msg = AckermannDriveStamped()
+            control_msg.drive.steering_angle = float(self.steer_pp)
+            control_msg.drive.acceleration = float(self.throttle - self.brake)
+            # control_msg.drive.acceleration = 0.05
+            
+        else:
+            control_msg = ControlCommand()
+            control_msg.steering = float(self.steer_pp)
+            control_msg.throttle = float(self.throttle)
+            control_msg.brake = float(self.brake)
 
+        self.publish_cmd.publish(control_msg)
 def main(args=None):
     rclpy.init(args=args)
     node = ControllerNode()
