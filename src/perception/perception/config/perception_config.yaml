@@ -45,6 +45,14 @@ constants_mono:
       bot:
         a: 0.2492
         b: -1.20
+      
+      trt_v11_eufs:
+        a: 0.27
+        b: -0.992
+      
+      trt_v11_real_life:
+        a: 0.427
+        b: -1.02
         
       unknown2:
         a: 0.536

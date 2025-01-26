@@ -6,22 +6,48 @@ import numpy as np
 from perception.perception_packages.view_utils import *
 
 
-def draw_images(left_boxes , left_image , data_to_write, package_path):
+# def draw_images(left_boxes , left_image , data_to_write, package_path):
         
-        for i, (cls,xywh,conf) in enumerate(left_boxes):
-            lx= left_image.shape[1]
-            ly=left_image.shape[0]
-            x,y,w,h = xywh
-            x1 = int((x - w / 2) * lx)      
-            y1 = int((y - h/2 ) * ly)
-            x2 = int((x + w / 2) * lx)
-            y2 = int((y + h / 2) * ly)
-            cv2.rectangle(left_image, (x1,y1), (x2,y2), (70,255,255), 1)
+#         for i, (cls,xywh,conf) in enumerate(left_boxes):
+#             lx= left_image.shape[1]
+#             ly=left_image.shape[0]
+#             x,y,w,h = xywh
+#             x1 = int((x - w / 2) * lx)      
+#             y1 = int((y - h/2 ) * ly)
+#             x2 = int((x + w / 2) * lx)
+#             y2 = int((y + h / 2) * ly)
+#             cv2.rectangle(left_image, (x1,y1), (x2,y2), (70,255,255), 1)
 
-            data = f"{np.round(data_to_write[i],2)} "
-            cv2.putText(left_image, data , (x1,y1), cv2.FONT_HERSHEY_DUPLEX, 0.5, (100,255,100), 1, cv2.LINE_AA) 
+#             data = f"{np.round(data_to_write[i],2)} "
+#             cv2.putText(left_image, data , (x1,y1), cv2.FONT_HERSHEY_DUPLEX, 0.5, (100,255,100), 1, cv2.LINE_AA) 
         
-        path = package_path / 'run_images_ros/camleft{image_number}.png'
+#         path = package_path / 'run_images_ros/camleft{0}.png'
+#         cv2.imwrite(path , left_image)  ## this path shld come from config file
+
+def draw_images(left_boxes , left_image , data_to_write, package_path = None):
+        
+        lx= left_image.shape[1]
+        ly=left_image.shape[0]
+        for i, bb in enumerate(left_boxes):
+                cls = bb.cls.cpu().numpy()
+                xywh = bb.xywh.cpu().numpy()
+                # conf = bb[0][2]
+
+                x = xywh[0][0]
+                y = xywh[0][1]
+                w = xywh[0][2]
+                h = xywh[0][3]
+        
+                x1 = int((x - w / 2))      
+                y1 = int((y - h / 2 ))
+                x2 = int((x + w / 2))
+                y2 = int((y + h / 2))
+                cv2.rectangle(left_image, (x1,y1), (x2,y2), (70,255,255), 1)
+
+                data = f"{np.round(data_to_write[i],2)}"
+                cv2.putText(left_image, data , (x1,y1), cv2.FONT_HERSHEY_DUPLEX, 0.5, (100,255,100), 1, cv2.LINE_AA) 
+        
+        path = '/home/atharav/IITBDV-main-stack/build/perception/perception/run_images_ros/camleft{0}.png'
         cv2.imwrite(path , left_image)  ## this path shld come from config file
 
 
