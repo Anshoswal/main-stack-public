@@ -86,7 +86,6 @@ def vel_controller2(prev_vel_error, v_curr, v_ref, dt, prev_integral, kp, ki, kd
     else:
         throttle = 0
         brake = min(-pedal,1)
-
     return [throttle, brake,integral,error,diffn]
 
 

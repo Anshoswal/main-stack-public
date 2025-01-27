@@ -19,9 +19,9 @@ from eufs_msgs.msg import CanState
 from eufs_msgs.srv import SetCanState
 from eufs_msgs.msg import ConeArrayWithCovariance
 from eufs_msgs.msg import CarState
-from dv_msgs.msg import Track
+from dv_msgs.msg import Track,ControlCommand
 from dv_msgs.msg import PointArray, Track, Cone
-
+from std_msgs.msg import Float64
 # from rclpy.duration import Duration
 from std_srvs.srv import Trigger
 from builtin_interfaces.msg import Duration
@@ -60,6 +60,7 @@ class ControllerNode(Node):
         self.too_close_blue = False
         self.too_close_yellow = False
         self.fixed_frame = False
+        self.v_curr = 0
         # parameters here
         with open(CONFIG_PATH / "controller.yaml", "r") as yaml_file:
             self.controller_config_data = yaml.safe_load(yaml_file)
@@ -104,8 +105,8 @@ class ControllerNode(Node):
             )
         
         if self.platform == "bot":
-            self.velocity_topic = self.controller_topic_data['state']['topic']
-            self.velocity_dtype = self.controller_topic_data['state']['data_type']      
+            self.velocity_topic = self.controller_topic_data['bot']['velocity']['topic']
+            self.velocity_dtype = self.controller_topic_data['bot']['velocity']['data_type']      
             self.car_state_subscription = self.create_subscription(
                 eval(self.velocity_dtype),
                 self.velocity_topic,
@@ -164,9 +165,9 @@ class ControllerNode(Node):
         # publishers here
         self.to_vcu_publisher_topic = self.controller_topic_data[self.platform]['command']['topic']
         self.to_vcu_publisher_dtype = self.controller_topic_data[self.platform]['command']['data_type']
-        print("to vcu data type",self.to_vcu_publisher_dtype)
-        print("to vcu data topic",self.to_vcu_publisher_topic)
-        self.publish_cmd = self.create_publisher(self.to_vcu_publisher_dtype, self.to_vcu_publisher_topic, 5)
+        print("to vcu data type:",self.to_vcu_publisher_dtype)
+        print("to vcu data topic:",self.to_vcu_publisher_topic)
+        self.publish_cmd = self.create_publisher(eval(self.to_vcu_publisher_dtype), self.to_vcu_publisher_topic, 5)
         
         
 
@@ -214,11 +215,13 @@ class ControllerNode(Node):
         return None 
     
     def get_rpmdata(self, msg):
+            self.get_logger().info("call to rpm data")
             self.v_curr = (msg.data*2*pi*self.wheel_rad)/60
             return None
 
     def control_callback(self):
-        if (self.waypoints_available and self.CarState_available) == False:
+        # if (self.waypoints_available and self.CarState_available) == False:
+        if self.waypoints_available == False and self.CarState_available == False:
             self.t_start = time.time()
             self.get_logger().info(f'Waypoints Available:{self.waypoints_available} CarState available:{self.CarState_available}')
             return
@@ -228,6 +231,7 @@ class ControllerNode(Node):
                 self.throttle,  self.brake = control_callback.throttle_controller()
                 self.steer_pp, self.x_p, self.y_p = control_callback.control_pure_pursuit()
                 self.get_logger().info(f'Speed:{self.v_curr:.4f} Accn:{float(self.throttle - self.brake):.4f} Steer:{float(-self.steer_pp):.4f} Time:{time.time() - self.t_start:.4f}')
+
                 self.send_to_vcu()
             else :
                 self.get_logger().info(f'Time Finished')
@@ -236,13 +240,19 @@ class ControllerNode(Node):
 
     def send_to_vcu(self):
         # Send the information to the topic
-        control_msg = AckermannDriveStamped()
-        control_msg.drive.steering_angle = float(self.steer_pp)
-        control_msg.drive.acceleration = float(self.throttle - self.brake)
-        # control_msg.drive.acceleration = 0.05
-        self.publish_cmd.publish(control_msg)
-        pass
+        if self.platform == 'eufs':
+            control_msg = AckermannDriveStamped()
+            control_msg.drive.steering_angle = float(self.steer_pp)
+            control_msg.drive.acceleration = float(self.throttle - self.brake)
+            # control_msg.drive.acceleration = 0.05
+            
+        else:
+            control_msg = ControlCommand()
+            control_msg.steering = float(self.steer_pp)
+            control_msg.throttle = float(self.throttle)
+            control_msg.brake = float(self.brake)
 
+        self.publish_cmd.publish(control_msg)
 def main(args=None):
     rclpy.init(args=args)
     node = ControllerNode()

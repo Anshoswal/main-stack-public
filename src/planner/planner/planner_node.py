@@ -209,6 +209,7 @@ class PlannerNode(Node):
 
     def send_to_controller(self,waypoints_msg):
         # Send the information to the topic
+        self.get_logger().info("SENDING WAYPOINTS")
         self.to_controller_publisher.publish(waypoints_msg)
         pass
         

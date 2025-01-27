@@ -43,15 +43,15 @@ class Algorithms():
         pass
 
     def throttle_controller(self):
-        if (self.waypoints_available and self.CarState_available) == False:
+        if self.waypoints_available  == False and self.CarState_available==False:
             self.t_start = time.time()
-            #self.get_logger().info(f'Waypoints Available:{self.waypoints_available} CarState available:{self.CarState_available}')
+            self.get_logger().info(f'Waypoints Available:{self.waypoints_available} CarState available:{self.CarState_available}')
+            print("waypoints and car state not avialable")
             return ('insufficient_info')
 
-        # Run Node for limited time 
+        # Run Node for limited time '
+        
         if time.time() < self.t_start + self.t_runtime :
-            # print('Enter Control loop')
-
             #~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
             # Just for storing path, car ground truth not required #
             pos_x = self.pos_x
@@ -72,8 +72,9 @@ class Algorithms():
                 throttle = 0
                 brake = 1
                 self.stop_signal = True
-                
+            
             else:
+                print("i am hereeee")
                 [throttle,brake,self.integral,self.vel_error,diffn ] = vel_controller2(kp=self.kp, ki=self.ki, kd=self.kd,
                                                                         v_curr=self.v_curr, v_ref=self.v_ref_dynamic,
                                                                         dt=dt_vel, prev_integral=self.integral, prev_vel_error=self.vel_error)
@@ -81,13 +82,9 @@ class Algorithms():
                 print('bbrake',brake)
             # print('close_index',closest_waypoint_index)
             # print('no. of midpoints',self.midpoints.shape)
-            # print('paired',self.paired_indexes)
-           
-            # self.get_logger().info(f"Stop Signal : {self.stop_signal}, Car ")
-
+            # print('paired',self.paired_indexes)            
             throttle = float(throttle)
             brake = float(brake)
-
             return throttle, brake
         
     def control_pure_pursuit(self):
