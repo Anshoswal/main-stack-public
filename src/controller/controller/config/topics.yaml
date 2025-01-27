@@ -7,7 +7,6 @@ stopping :
   data_type : "MarkerArray"
 
 cones :
-
   blue :
     topic : "/cones_blue_array"
     data_type : "Track"
