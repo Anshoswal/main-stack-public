@@ -19,10 +19,18 @@ boundary :
   topic : "/boundary"
   data_type : "MarkerArray"
 
-state :
-  topic : "/ground_truth/state"
-  data_type : "CarState"
+#Datasources
+sim_slam:
+  state :
+    topic : "/ground_truth/state"
+    data_type : "CarState"
+    
+ground_truth:
+  state:
+    topic: "/ground_truth/state"
+    data_type: "CarState"
 
+#Platforms
 bot:
   command : 
     topic : "/cmd1"

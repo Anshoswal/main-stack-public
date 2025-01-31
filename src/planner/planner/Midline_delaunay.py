@@ -36,12 +36,6 @@ class Midline_delaunay():
         f_tire_x,f_tire_y = get_tyre_coordinates(self.posX,self.posY,self.LENGTH_OF_CAR,self.car_yaw)
         self.yellow_boundary , self.blue_boundary = self.boundary(self.blue_cones,self.yellow_cones,self.distance_blue,self.distance_yellow)
     
-    
-        x_mid, y_mid, line_list , self.line_length_list = self.delaunay_waypoints(self.blue_cones,self.yellow_cones)
-        xy_mid = np.column_stack((x_mid,y_mid))
-        if self.BEST_PATH:
-            best_path = self.get_best_path(self.posX,self.posY)
-            print("best path",best_path)
         try:
             x_mid, y_mid, line_list , self.line_length_list = self.delaunay_waypoints(self.blue_cones,self.yellow_cones)
             xy_mid = np.column_stack((x_mid,y_mid))
@@ -52,12 +46,17 @@ class Midline_delaunay():
             x_mid, y_mid, mid_point_cones_array, our_points = perp_bisect(self.blue_cones,self.yellow_cones, self.TRACK_WIDTH)
             xy_mid = np.column_stack((x_mid,y_mid))
         xy_mid = np.unique(xy_mid, axis=0)
-        '''
-        This below part of code is used to interpolate points
-        '''
+        if self.BEST_PATH:
+            best_path = self.get_best_path(self.posX,self.posY)
+            print("best path",best_path)
+            if self.INTERPOLATION and len(np.unique(x_mid))>1:
+                distances_from_midpoints = distances(f_tire_x, f_tire_y, x_mid=best_path[:][0], y_mid=best_path[:][1])
+                xy_mid_send = interpolate(x_mid=best_path[:][0], y_mid=best_path[:][1], distances=distances_from_midpoints)
+        
+        #xy_mid_send = xy_mid
         if self.INTERPOLATION and len(np.unique(x_mid))>1:
-            distances_from_midpoints = distances(f_tire_x, f_tire_y, x_mid=best_path[:][0], y_mid=best_path[:][1])
-            xy_mid_send = interpolate(x_mid=best_path[:][0], y_mid=best_path[:][1], distances=distances_from_midpoints)
+            distances_from_midpoints = distances(f_tire_x, f_tire_y, x_mid=x_mid, y_mid=y_mid)
+            xy_mid = interpolate(x_mid=x_mid, y_mid=y_mid, distances=distances_from_midpoints)
         return xy_mid#alter later according to the switch
         
             

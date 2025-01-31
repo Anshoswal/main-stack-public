@@ -43,12 +43,6 @@ class Algorithms():
         pass
 
     def throttle_controller(self):
-        if self.waypoints_available  == False and self.CarState_available==False:
-            self.t_start = time.time()
-            self.get_logger().info(f'Waypoints Available:{self.waypoints_available} CarState available:{self.CarState_available}')
-            print("waypoints and car state not avialable")
-            return ('insufficient_info')
-
         # Run Node for limited time '
         
         if time.time() < self.t_start + self.t_runtime :
@@ -65,7 +59,7 @@ class Algorithms():
             '''
             If Orange cones aren't visible after being seen by car, the car applies brakes to come to stop
             '''
-
+            print("waypoints:",self.current_waypoints)
             mean_change,self.k_dynamic, self.v_ref_dynamic = curvature(self.current_waypoints,self.k_static, self.v_ref)
 
             if((self.stoppoints_available == True or self.stop_signal == True)):
@@ -76,7 +70,7 @@ class Algorithms():
             else:
                 print("i am hereeee")
                 [throttle,brake,self.integral,self.vel_error,diffn ] = vel_controller2(kp=self.kp, ki=self.ki, kd=self.kd,
-                                                                        v_curr=self.v_curr, v_ref=self.v_ref_dynamic,
+                                                                        v_curr=self.v_curr, v_ref=self.v_ref,
                                                                         dt=dt_vel, prev_integral=self.integral, prev_vel_error=self.vel_error)
                 print('tthrotle', throttle)
                 print('bbrake',brake)
@@ -109,10 +103,10 @@ class Algorithms():
                 
             else:
                 try:
-                    print(self.current_waypoints[:,0])
+                    print(self.current_waypoints[:,0], "waypoints")
                     [steer_pp, x_p, y_p,steer,theta] = pure_pursuit(x = self.current_waypoints[:,0], y = self.current_waypoints[:,1], 
                                                         vf=self.v_curr, pos_x=self.pos_x, pos_y=self.pos_y, 
-                                                        veh_head=self.car_yaw, K = self.k_static, L=self.car_length, MAX_STEER = self.max_steer_radians)
+                                                        veh_head=self.car_yaw, K = self.k_dynamic, L=self.car_length, MAX_STEER = self.max_steer_radians)
                     print(steer_pp)
                     print(f" Car state {self.pos_x,self.pos_y, self.car_yaw}")
                     print('x_p,y_p',x_p,y_p)

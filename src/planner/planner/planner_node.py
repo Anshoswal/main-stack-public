@@ -62,7 +62,7 @@ class PlannerNode(Node):
         self.PERCEPTION_DISTANCE = self.planner_config['PERCEPTION_DISTANCE']
 
         # Declare the parameters 
-        self.declare_parameter('data_source', 'perc_ppc')   # Declare the platform being used, default is eufs
+        self.declare_parameter('data_source', 'ground_truth')   # Declare the platform being used, default is eufs
         self.declare_parameter('platform', 'eufs')
 
         # Get the parameter values
@@ -216,6 +216,7 @@ class PlannerNode(Node):
 
     def set_topic_subscriber(self, platform , data_source):
         self.cones_topic = self.planner_config_topic[platform]['cones'][data_source]['topic']
+        print(self.cones_topic)
         if self.platform == 'eufs':
 
             self.state_topic = self.planner_config_topic[platform]['car_state'][data_source]['topic']

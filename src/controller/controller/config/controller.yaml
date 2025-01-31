@@ -12,4 +12,4 @@ pure_pursuit : True
 stanley : False
 get_carstate : True
 t_runtime : 1000
-
+fixed_frame: True

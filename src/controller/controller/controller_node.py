@@ -60,11 +60,11 @@ class ControllerNode(Node):
         self.current_waypoints = None
         self.too_close_blue = False
         self.too_close_yellow = False
-        self.fixed_frame = False
         self.v_curr = 0
         # parameters here
         with open(CONFIG_PATH / "controller.yaml", "r") as yaml_file:
             self.controller_config_data = yaml.safe_load(yaml_file)
+        self.fixed_frame = self.controller_config_data['fixed_frame']
         self.period = self.controller_config_data['period']
         self.t_runtime = self.controller_config_data['t_runtime']
         self.subscribe_carstate = self.controller_config_data['get_carstate']
@@ -79,7 +79,7 @@ class ControllerNode(Node):
         #for carstate
         
         #declare params
-        self.declare_parameter('data_source', 'simulator_slam')   # Declare the platform being used, default is eufs
+        self.declare_parameter('data_source', 'ground_truth')   # Declare the platform being used, default is eufs
         self.declare_parameter('platform', 'eufs')
         # Get the parameter values
         self.platform = self.get_parameter('platform').get_parameter_value().string_value
@@ -94,10 +94,10 @@ class ControllerNode(Node):
             self.get_logger().error("Invalid system for controller parameter. Choose either 'eufs' or 'bot'. Shutting the Node down...")
             self.destroy_node() 
 
-
-        if self.fixed_frame:
-            self.car_state_topic = self.controller_topic_data['state']['topic']
-            self.car_state_dtype = self.controller_topic_data['state']['data_type']
+        if self.platform == "eufs":
+            self.car_state_topic = self.controller_topic_data[self.data_source]['state']['topic']
+            self.car_state_dtype = self.controller_topic_data[self.data_source]['state']['data_type']
+            print()
             self.car_state_subscription = self.create_subscription(
                 eval(self.car_state_dtype),
                 self.car_state_topic,
@@ -206,10 +206,11 @@ class ControllerNode(Node):
         return None
     
     def get_carstate(self,data):#to get car state of car in case of the frame is fixed
-        self.pos_x = data.pose.pose.position.x
-        self.pos_y = data.pose.pose.position.y
-        x,y,z,w = data.pose.pose.orientation.x,data.pose.pose.orientation.y,data.pose.pose.orientation.z,data.pose.pose.orientation.w
-        self.car_yaw = quaternionToYaw(x,y,z,w)
+        if not self.fixed_frame:
+            self.pos_x = data.pose.pose.position.x
+            self.pos_y = data.pose.pose.position.y
+            x,y,z,w = data.pose.pose.orientation.x,data.pose.pose.orientation.y,data.pose.pose.orientation.z,data.pose.pose.orientation.w
+            self.car_yaw = quaternionToYaw(x,y,z,w)
         self.carState = data
         self.v_curr=np.sqrt(self.carState.twist.twist.linear.x**2 + self.carState.twist.twist.linear.y**2)
         self.CarState_available = True
@@ -246,6 +247,7 @@ class ControllerNode(Node):
             control_msg.drive.steering_angle = float(self.steer_pp)
             control_msg.drive.acceleration = float(self.throttle - self.brake)
             # control_msg.drive.acceleration = 0.05
+            print("publishing throttle")
             
         else:
             control_msg = ControlCommand()

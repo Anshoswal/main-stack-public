@@ -309,7 +309,7 @@ def evaluate_possible_paths(xy_mid, starting_point, NUMBER_OF_WAYPOINTS):
 
 
 
-def perp_bisect(blue_cones, yellow_cones, TRACK_WIDTH=1.5):
+def perp_bisect(blue_cones, yellow_cones, TRACK_WIDTH):
     x_mid, y_mid = [], []
     #trying to get pseudo way points by the perp bisector method
     perp_cones = [[0,0]]
@@ -341,7 +341,7 @@ def perp_bisect(blue_cones, yellow_cones, TRACK_WIDTH=1.5):
 
         unit_perpendicular_vector = np.array([(sorted_perp_cones[i][1]-sorted_perp_cones[i+1][1])/magnitude,(sorted_perp_cones[i+1][0]-sorted_perp_cones[i][0])/magnitude])
 
-        displacement_vector = np.array([unit_perpendicular_vector[0]*TRACK_WIDTH,unit_perpendicular_vector[1]*TRACK_WIDTH])
+        displacement_vector = np.array([unit_perpendicular_vector[0]*TRACK_WIDTH/2,unit_perpendicular_vector[1]*TRACK_WIDTH/2])
         #1.5 is approximate half width of road
 
         possible_waypoints = np.array([[mid_point_cones[0]+displacement_vector[0],mid_point_cones[1]+displacement_vector[1]],[mid_point_cones[0]-displacement_vector[0],mid_point_cones[1]-displacement_vector[1]]])
