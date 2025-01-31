@@ -1,12 +1,13 @@
 
 # Import perception packages:
-from perception.object_detect.yolo_new import Yolo
+# from perception.object_detect.yolo_new import Yolo
 from ultralytics import YOLO
 
 # Import other dependencies
 import numpy as np
 from pathlib import Path
 import yaml
+import cv2
 
 
 class LoadYolo():
@@ -29,6 +30,8 @@ class LoadYolo():
          
          # Detect bounding boxes using Yolo
         # boxes = self.yolo_model.detect_all(image, conf_thres = self.conf_thresh)[0]
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
         detected_boxes = self.yolo_model.predict(image)[0]
         boxes = [box.boxes for box in detected_boxes]
 

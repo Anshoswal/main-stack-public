@@ -72,7 +72,7 @@ constants_fusion:
   cy : 193.5349578857422
 
 image_process_params:
-  resize: 'False'
+  resize: 'True'
   smoothen: 'False'
   blur: 'False'
 # and so on...
@@ -83,7 +83,8 @@ perc_publish_topic:
 yolo_paths:
     # yolo_weights_path = '/home/atharav/iitb-racing-ros2/src/perception/perception/object_detect/yolov5/weights/yolo_eufs_best.pt' # yolo_eufs_best.pt
     # yolo_weights_path : '/home/atharav/Downloads/eufs_v5_best.pt'
-    yolo_weights_path : '/home/atharav/IITBDV-main-stack/src/perception/perception/object_detect/weights/v11_eufs_best.engine'
+    # yolo_weights_path : '/home/atharav/IITBDV-main-stack/src/perception/perception/object_detect/weights/v11_eufs_best.engine'
+    yolo_weights_path : '/home/jetson/Desktop/jetson_v11_real_life.engine' # Real Life
     yolo_data_path : 'object_detect/yolov5/models/data.yaml'
     kpr_path : "Keypoint_Detection/Weights/23_loss_0.38.pt"
     conf_thresh : 0.6 # 0.5 and below is super dangerous

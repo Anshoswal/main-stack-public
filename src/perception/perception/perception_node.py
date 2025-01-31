@@ -57,7 +57,7 @@ class PerceptionNode(Node):
         # self.callback_group = ReentrantCallbackGroup()
         
         # Declare the parameters 
-        self.declare_parameter('platform', 'eufs')   # Declare the platform being used, default is eufs
+        self.declare_parameter('platform', 'bot')   # Declare the platform being used, default is eufs
         self.declare_parameter('pipeline','mono')   # Declare the pipeline being used, default is mono
 
         # Get the parameter values
