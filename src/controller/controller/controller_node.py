@@ -252,6 +252,7 @@ class ControllerNode(Node):
             print("publishing throttle")
             
         else:
+            self.steer_pp = -np.rad2deg(self.steer_pp)
             control_msg = ControlCommand()
             control_msg.steering = float(self.steer_pp)
             control_msg.throttle = float(self.throttle)
