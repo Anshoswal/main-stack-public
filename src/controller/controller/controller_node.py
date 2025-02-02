@@ -115,6 +115,8 @@ class ControllerNode(Node):
                 self.get_rpmdata,
                 10
             )
+            if self.fixed_frame:
+                self.car_yaw = np.radians(90) #axis is rotated by 90 in case of bot in car's frame
 
 
         #for waypoints and stoppoints
@@ -252,6 +254,7 @@ class ControllerNode(Node):
             print("publishing throttle")
             
         else:
+            self.steer_pp = -np.rad2deg(self.steer_pp)
             control_msg = ControlCommand()
             control_msg.steering = float(self.steer_pp)
             control_msg.throttle = float(self.throttle)
