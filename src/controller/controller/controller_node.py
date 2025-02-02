@@ -114,6 +114,8 @@ class ControllerNode(Node):
                 self.get_rpmdata,
                 10
             )
+            if self.fixed_frame:
+                self.car_yaw = np.radians(90) #axis is rotated by 90 in case of bot in car's frame
 
 
         #for waypoints and stoppoints
