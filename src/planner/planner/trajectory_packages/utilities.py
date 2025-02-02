@@ -58,12 +58,14 @@ def slam_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones,slam_b
     return blue_cones, yellow_cones, big_orange_cones , orange_cones
 
 
-def perc_cones_bot(msg,blue_cones,yellow_cones,big_orange_cones,orange_cones):
+def perc_cones_bot(msg,blue_cones,yellow_cones,big_orange_cones,orange_cones,PERCEPTION_DISTANCE):
     for cone in msg.track:
         if((cone.color == 0)):
-            blue_cones.append([cone.location.x, cone.location.y,0])
+            if math.sqrt(cone.location.x**2+cone.location.y**2)<=PERCEPTION_DISTANCE:#config file
+                blue_cones.append([cone.location.x, cone.location.y,0])
         elif(cone.color == 1):
-            yellow_cones.append([cone.location.x, cone.location.y,1])
+            if math.sqrt(cone.location.x**2+cone.location.y**2)<=PERCEPTION_DISTANCE:#config file
+                yellow_cones.append([cone.location.x, cone.location.y,1])
         elif(cone.color == 2):
         #     if cone.location.x < 0 and cone.location.y < 1: # this limit on y of big orange cone is for testing only as our track is smaller than actual acceleration
         #         big_orange_cones_left.append([cone.location.x, cone.location.y])

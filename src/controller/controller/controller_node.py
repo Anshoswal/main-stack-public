@@ -51,6 +51,7 @@ class ControllerNode(Node):
         self.store_path_taken = np.array([[0,0]])
         self.integral = 0
         self.vel_error = 0
+        self.wheel_rad = 0.06
         self.t_start = time.time()
         self.t1 = time.time() - 1
         self.CarState_available = False
@@ -79,8 +80,8 @@ class ControllerNode(Node):
         #for carstate
         
         #declare params
-        self.declare_parameter('data_source', 'ground_truth')   # Declare the platform being used, default is eufs
-        self.declare_parameter('platform', 'eufs')
+        self.declare_parameter('data_source', 'perc_ppc')   # Declare the platform being used, default is eufs
+        self.declare_parameter('platform', 'bot')
         # Get the parameter values
         self.platform = self.get_parameter('platform').get_parameter_value().string_value
         self.data_source = self.get_parameter('data_source').get_parameter_value().string_value
@@ -168,7 +169,7 @@ class ControllerNode(Node):
         self.to_vcu_publisher_dtype = self.controller_topic_data[self.platform]['command']['data_type']
         print("to vcu data type:",self.to_vcu_publisher_dtype)
         print("to vcu data topic:",self.to_vcu_publisher_topic)
-        self.publish_cmd = self.create_publisher(eval(self.to_vcu_publisher_dtype), self.to_vcu_publisher_topic, 5)
+        self.publish_cmd = self.create_publisher(eval(self.to_vcu_publisher_dtype), self.to_vcu_publisher_topic, 10)
         
         
 
@@ -217,7 +218,7 @@ class ControllerNode(Node):
         return None 
     
     def get_rpmdata(self, msg):
-            self.get_logger().info("call to rpm data")
+            #self.get_logger().info("call to rpm data")
             self.v_curr = (msg.data*2*pi*self.wheel_rad)/60
             return None
 
@@ -242,6 +243,7 @@ class ControllerNode(Node):
 
     def send_to_vcu(self):
         # Send the information to the topic
+        self.steer_pp = -np.rad2deg(self.steer_pp)
         if self.platform == 'eufs':
             control_msg = AckermannDriveStamped()
             control_msg.drive.steering_angle = float(self.steer_pp)

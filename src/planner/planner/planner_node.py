@@ -62,8 +62,8 @@ class PlannerNode(Node):
         self.PERCEPTION_DISTANCE = self.planner_config['PERCEPTION_DISTANCE']
 
         # Declare the parameters 
-        self.declare_parameter('data_source', 'ground_truth')   # Declare the platform being used, default is eufs
-        self.declare_parameter('platform', 'eufs')
+        self.declare_parameter('data_source', 'perc_ppc')   # Declare the platform being used, default is eufs
+        self.declare_parameter('platform', 'bot')
 
         # Get the parameter values
         self.platform = self.get_parameter('platform').get_parameter_value().string_value
@@ -127,7 +127,7 @@ class PlannerNode(Node):
             ("eufs", "ground_truth"): lambda: groundTruth_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones,self.PERCEPTION_DISTANCE),
             ("eufs", "sim_perception"): lambda: perc_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones),
             ("eufs", "slam"): lambda: slam_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones ,self.slam_blue_cones ,self.slam_yellow_cones ,self.slam_big_orange_cones ,self.slam_orange_cones  ),
-            ("bot", "perc_ppc"): lambda: perc_cones_bot(data,blue_cones,yellow_cones,big_orange_cones,orange_cones),
+            ("bot", "perc_ppc"): lambda: perc_cones_bot(data,blue_cones,yellow_cones,big_orange_cones,orange_cones,self.PERCEPTION_DISTANCE),
             ("bot", "slam_ppc"): lambda: slam_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones ,self.slam_blue_cones ,self.slam_yellow_cones ,self.slam_big_orange_cones ,self.slam_orange_cones ),
         }#assuming for now that slam cones from simulator,virtual slam cones and bot have the same data type and hence the same function
         blue_cones = []
