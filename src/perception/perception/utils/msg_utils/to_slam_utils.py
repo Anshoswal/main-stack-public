@@ -4,6 +4,7 @@ import rclpy
 from rclpy.node import Node
 from math import pi, cos, sin
 
+from perception.utils.perc_utils import check_cone_overlap
 class vis(Node):
 
     def __init__(self):
@@ -37,6 +38,7 @@ class vis(Node):
 
             ConesSeen = Track()
             cones = []
+            final_cones = []
 
             carLocation = Cone()
 
@@ -70,6 +72,8 @@ class vis(Node):
                 sensed_data.append(single)
 
             ConesSeen.track = cones
+            check_cone_overlap(ConesSeen.track, final_cones)
+            ConesSeen.track = final_cones
             self.get_logger().info(f"numuber of sensed data is = {len(sensed_data)} and length of thetas = {len(thetas)}")
 
             if len(sensed_data) > 0:

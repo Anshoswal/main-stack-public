@@ -91,15 +91,15 @@ def bearing(depth,cone_centre, img_shape):
     
     # focal_length = 392 # for fsds
     # focal_length = 640 # for carmaker
-    focal_length = 448.13386274345095 # for eufs
-    # focal_length = 880.8817073599246 # for eufs 1280x720
+    # focal_length = 448.13386274345095 # for eufs
+    focal_length = 880.8817073599246 # for eufs 1280x720
 
-    centre=(img_shape[0]//2,img_shape[1]//2)
-    
+    centre=(img_shape[0]//2, img_shape[1]//2)
     distance=(centre[1]-cone_centre[0])
     
     theta=180*np.arctan(distance/focal_length)/np.pi
     range_2d=float(depth)/(np.cos(theta*(np.pi)/180))  #2D Range
+    # print("theta:", theta, "range:", range_2d, "depth:", depth)
     cone_height = 0.325
     camera_height = 0.8 
     height_diff=camera_height-cone_height

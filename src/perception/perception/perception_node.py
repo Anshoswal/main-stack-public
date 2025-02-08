@@ -16,9 +16,12 @@ from sensor_msgs.msg import Image
 from visualization_msgs.msg import Marker, MarkerArray
 from dv_msgs.msg import Track, Cone, ObservationRangeBearing, SingleRangeBearingObservation
 from perception.utils.msg_utils.to_slam_utils import vis
+from perception.utils.perc_utils import *
+from sensor_msgs.msg import PointCloud2
  
 # Algorithm imports here
 from perception.mono import MonoDepth, MonoPipeline
+from perception.fusion import FusionDepth, FusionPipeline
 from perception.utils.perc_utils import draw_images, update_pos, process_image
 from perception.YOLO import LoadYolo
 
@@ -54,11 +57,12 @@ class PerceptionNode(Node):
         # # Create mutually exclusive callback groups
         self.callback_group_left = MutuallyExclusiveCallbackGroup()
         self.callback_group_right = MutuallyExclusiveCallbackGroup()
+        self.lidar_group = MutuallyExclusiveCallbackGroup()
         # self.callback_group = ReentrantCallbackGroup()
         
         # Declare the parameters 
         self.declare_parameter('platform', 'bot')   # Declare the platform being used, default is eufs
-        self.declare_parameter('pipeline','mono')   # Declare the pipeline being used, default is mono
+        self.declare_parameter('pipeline','fusion')   # Declare the pipeline being used, default is mono
 
         # Get the parameter values
         self.platform = self.get_parameter('platform').get_parameter_value().string_value
@@ -117,6 +121,13 @@ class PerceptionNode(Node):
             callback_group=self.callback_group_right
         )
 
+        self.lidar_topic = self.create_subscription(
+            PointCloud2,
+            self.lidar_topic,
+            self.get_pcd,
+            qos_profile=qos_policy,
+            callback_group=self.lidar_group
+        )
         
         # Publishers
         self.to_slam_publisher = self.create_publisher(
@@ -129,6 +140,7 @@ class PerceptionNode(Node):
                 
         self.cam_left_topic = self.perc_config['cam_topics'][platform]['left']['topic']
         self.cam_right_topic = self.perc_config['cam_topics'][platform]['right']['topic']
+        self.lidar_topic = self.perc_config['lidar_topics']['topic']
     
     def set_publisher_topic(self):
         
@@ -179,7 +191,13 @@ class PerceptionNode(Node):
         """
         self.get_logger().info("Initializing Fusion pipeline...")
         # Initialize Fusion pipeline here
-        return None  # Replace with actual pipeline class instance
+        fusion = FusionPipeline(
+                    config_path=CONFIG_PATH,
+                    platform=self.platform,
+                    logger=self.get_logger(),
+                    )
+        self.get_logger().info("Mono initialization successful")
+        return fusion
 
     def init_lidar_only_pipeline(self):
         """
@@ -212,6 +230,28 @@ class PerceptionNode(Node):
         # If both images and their bounding boxes are ready, execute the pipeline
         if self.left_image is not None and self.left_boxes is not None:
             self.sync_callbacks(self.left_image, self.right_image, self.left_boxes, self.right_boxes)
+
+    def get_pcd(self,msg):
+        lidar_height = 0.25
+        points = pc2.read_points(msg,skip_nans=True)
+        points = np.array([[data[0]+0.59,data[1],data[2]] for data in points if (data[0] > 0) and -lidar_height+0.35 > data[2]> -lidar_height])# X = points[:, :2]  # Use x, y for plane fitting
+        # y = points[:, 2]   # Use z as the target
+        # ransac = RANSACRegressor()
+        # ransac.fit(X, y)
+
+        # # Predict the ground model (plane) for all points
+        # ground_z_pred = ransac.predict(X)
+
+        # # Calculate the residuals (difference between actual z and predicted z)
+        # residuals = np.abs(y - ground_z_pred)
+
+        # # Define a threshold for the residuals (points close to the ground plane)
+        # threshold = 0.0
+        points_filtered = points
+        #self.points_filtered= np.array([[data[0],data[1],data[2]] for data in points if (data[2]>-0.2)])
+        model = DBSCAN(eps=0.2, min_samples=2)
+        labels = model.fit_predict(points_filtered)
+        self.lidar_coords = cones_xy(points_filtered,labels)
 
     def sync_callbacks(self, left_image, right_image, left_boxes, right_boxes):
         
@@ -257,6 +297,8 @@ class PerceptionNode(Node):
                 # Execute the specific pipeline
                 if (pipeline_name == 'monopipeline'):
                     depths, thetas, ranges, colors = pipeline.monopipeline(left_image, self.frame_number, left_boxes)
+                elif (pipeline_name == 'fusionpipeline'):
+                    depths, fusion_d, thetas, ranges, colors = pipeline.fusionpipeline(left_image, right_image, self.frame_number, left_boxes, right_boxes, self.lidar_coords)
                 elif (pipeline_name == 'dualmonopipeline'):
                     depths, thetas, ranges, colors = pipeline.dualmonopipeline(left_image, right_image, self.frame_number, left_boxes, right_boxes)
                 
@@ -274,6 +316,7 @@ class PerceptionNode(Node):
                 # Dynamically store the results for this pipeline
                 self.pipeline_outputs[pipeline_name] = {
                     "depths": depths,
+                    "depths_using_fusion": fusion_d,
                     "thetas": thetas,
                     "ranges": ranges,
                     "colors": colors
@@ -288,7 +331,11 @@ class PerceptionNode(Node):
         if len(self.active_pipelines) == 1:
             # Single pipeline: Send data to SLAM
             self.get_logger().info(f"Sending data to SLAM from {self.active_pipelines[0].__class__.__name__}")
-            data = self.pipeline_outputs[self.active_pipelines[0].__class__.__name__.lower()]
+            try: 
+                data = self.pipeline_outputs[self.active_pipelines[0].__class__.__name__.lower()]
+            except KeyError:
+                self.get_logger().error("No cones detected :(")
+                return
             thetas = data['thetas']
             ranges = data['ranges']
             colors = data['colors']
