@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dds>
+    <profiles>
+        <partipant profile_name="participant_profile">
+            <rtps>
+                <builtin>
+                    <discovery_config>
+                        <initial_peers_list>
+                            <locator>udpv4://192.168.0.100:7412</locator>
+                            <locator>udpv4://192.168.0.103:7412</locator>
+                        </initial_peers_list>
+                    </discovery_config>
+                </builtin>
+            </rtps>
+        </partipant>
+    </profiles>
+
+    <topic_profiles>
+        <topic profile_name="allowed_topic_viz_depths">
+            <name>/viz_depths</name>
+            <kind>NO_KEY</kind>
+        </topic>
+    </topic_profiles>
+</dds>
+

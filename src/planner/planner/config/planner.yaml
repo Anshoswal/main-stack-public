@@ -1,0 +1,20 @@
+PERIOD : 0.05 #20Hz
+SLAM_DISTANCE : 10
+LAP_COUNT : 4
+INTERPOLATION : True
+PERCEPTION_DISTANCE : 12 #change for different maps while using ground truth
+NUMBER_OF_WAYPOINTS : 4
+ANGLE_WEIGHT : 1.4
+EDGE_WEIGHT : 0.4
+K_PATH_WEIGHT : 10
+EXPECTED_PATH_LENGTH : 1
+FOV: 120
+FOV_RADIUS : 15
+ellipse_dimensions:
+  a : 8
+  b : 4
+
+LENGTH_OF_CAR : 1.5
+BEST_PATH : False
+TRACK_WIDTH : 2 #change for different tracks
+

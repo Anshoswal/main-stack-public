@@ -1,0 +1,48 @@
+waypoints :
+  topic : "/WaypointArray"
+  data_type : "PointArray"
+
+stopping :
+  topic : "/stopping_array"
+  data_type : "MarkerArray"
+
+cones :
+  blue :
+    topic : "/cones_blue_array"
+    data_type : "Track"
+
+  yellow :
+    topic : "/cones_yellow_array"
+    data_type : "Track"
+
+boundary :
+  topic : "/boundary"
+  data_type : "MarkerArray"
+
+#Datasources
+sim_slam:
+  state :
+    topic : "/ground_truth/state"
+    data_type : "CarState"
+    
+ground_truth:
+  state:
+    topic: "/ground_truth/state"
+    data_type: "CarState"
+
+#Platforms
+bot:
+  command : 
+    topic : "/cmd1"
+    data_type : "ControlCommand"
+
+  velocity:
+    topic: "/rpm_data"
+    data_type : "Float64"
+
+eufs:
+  command : 
+    topic : "/cmd"
+    data_type : "AckermannDriveStamped"
+
+
