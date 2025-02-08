@@ -5,7 +5,7 @@ cam_topics:
       # topic: "/zed_left/zed_node_1/right/image_rect_color" # Right
 
     right: # Comment/uncomment the camera topic you want to use
-      topic: "/zed_right/zed_node_0/left/image_rect_color" # Left
+      topic: "/zed_right/zed_node_0/right/image_rect_color" # Left
       # topic: "/zed_right/zed_node_0/right/image_rect_color" # Right
 
   eufs:
@@ -93,9 +93,7 @@ perc_publish_topic:
 yolo_paths:
     # yolo_weights_path = '/home/atharav/iitb-racing-ros2/src/perception/perception/object_detect/yolov5/weights/yolo_eufs_best.pt' # yolo_eufs_best.pt
     # yolo_weights_path : '/home/atharav/Downloads/eufs_v5_best.pt'
-    yolo_weights_path : '/home/jetson/Desktop/jetson_v11_real_life.engine'
-    # yolo_weights_path : '/home/atharav/IITBDV-main-stack/src/perception/perception/object_detect/weights/v11_eufs_best.engine'
-    yolo_weights_path : '/home/jetson/Desktop/jetson_v11_real_life.engine' # Real Life
+    yolo_weights_path : '/home/jetson/IITBDV-main-stack/src/perception/perception/object_detect/yolo weights/v11_real_life_best.engine'
     yolo_data_path : 'object_detect/yolov5/models/data.yaml'
     kpr_path : "Keypoint_Detection/Weights/23_loss_0.38.pt"
     conf_thresh : 0.6 # 0.5 and below is super dangerous
