@@ -67,6 +67,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/VCU2LOGDynamics1.msg"
   "msg/VCU2LOGStatus.msg"
   "msg/PointArray.msg"
+
   "srv/Reset.srv"
   DEPENDENCIES geometry_msgs visualization_msgs std_msgs 
 )
