@@ -59,7 +59,7 @@ class Algorithms():
             '''
             If Orange cones aren't visible after being seen by car, the car applies brakes to come to stop
             '''
-            print("waypoints:",self.current_waypoints)
+            # print("waypoints:",self.current_waypoints)
             mean_change,self.k_dynamic, self.v_ref_dynamic = curvature(self.current_waypoints,self.k_static, self.v_ref)
 
             if((self.stoppoints_available == True or self.stop_signal == True)):
@@ -68,12 +68,12 @@ class Algorithms():
                 self.stop_signal = True
             
             else:
-                print("i am hereeee")
+                #print("i am hereeee")
                 [throttle,brake,self.integral,self.vel_error,diffn ] = vel_controller2(kp=self.kp, ki=self.ki, kd=self.kd,
                                                                         v_curr=self.v_curr, v_ref=self.v_ref,
                                                                         dt=dt_vel, prev_integral=self.integral, prev_vel_error=self.vel_error)
-                print('tthrotle', throttle)
-                print('bbrake',brake)
+                #print('tthrotle', throttle)
+                #print('bbrake',brake)
             # print('close_index',closest_waypoint_index)
             # print('no. of midpoints',self.midpoints.shape)
             # print('paired',self.paired_indexes)            
@@ -83,7 +83,6 @@ class Algorithms():
         
     def control_pure_pursuit(self):
         steer_pp=0
-        
         x_p=0
         y_p =0
         #print(f"mean change :{mean_change}")
@@ -95,32 +94,47 @@ class Algorithms():
                 if len(self.blue_cones.track) > len(self.yellow_cones.track):
                     steer_pp = self.max_steer_radians
                     print("case3")
+                    print("MAAXXXXXXXXXXXXXXXXXXXXXXXXXX")
                     #print(f'bluecones:{self.old_detected_blue_cones.markers}yellowcones:{self.old_detected_yellow_cones.markers}')
                 else:
                     steer_pp = -self.max_steer_radians
                     print("case4")
+                    print("MAAXXXXXXXXXXXXXXXXXXXXXXXXXX")
                     #print(f'bluecones:{self.old_detected_blue_cones.markers}yellowcones:{self.old_detected_yellow_cones.markers}')
                 
             else:
+                # print(self.current_waypoints[:,0], "waypoints")
+                [steer_pp, x_p, y_p,steer,theta] = pure_pursuit(x = self.current_waypoints[:,0], y = self.current_waypoints[:,1], 
+                                                    vf=self.v_curr, pos_x=self.pos_x, pos_y=self.pos_y, 
+                                                    veh_head=self.car_yaw, K = self.k_dynamic, L=self.car_length, MAX_STEER = self.max_steer_radians)
+                print(steer_pp)
+                print(f" Car state {self.pos_x},{self.pos_y}, {self.car_yaw}")
+                # print('x_p,y_p',x_p,y_p)
+                # print('v_curr',self.v_curr)
+                # print('theta,steer',theta,steer)
                 try:
-                    print(self.current_waypoints[:,0], "waypoints")
+                    # print(self.current_waypoints[:,0], "waypoints")
                     [steer_pp, x_p, y_p,steer,theta] = pure_pursuit(x = self.current_waypoints[:,0], y = self.current_waypoints[:,1], 
                                                         vf=self.v_curr, pos_x=self.pos_x, pos_y=self.pos_y, 
-                                                        veh_head=self.car_yaw, K = self.k_dynamic, L=self.car_length, MAX_STEER = self.max_steer_radians)
+                                                        veh_head=self.car_yaw, K = self.k_static, L=self.car_length, MAX_STEER = self.max_steer_radians)
                     print(steer_pp)
-                    print(f" Car state {self.pos_x,self.pos_y, self.car_yaw}")
-                    print('x_p,y_p',x_p,y_p)
-                    print('v_curr',self.v_curr)
-                    print('theta,steer',theta,steer)
+                    print(f" Car state {self.pos_x},{self.pos_y}, {self.car_yaw}")
+                    # print('x_p,y_p',x_p,y_p)
+                    # print('v_curr',self.v_curr)
+                    # print('theta,steer',theta,steer)
                 except:
+                    print('inside except')
                     pass
 
                 
         elif self.too_close_blue:
             steer_pp = self.max_steer_radians
+            print('hiiiiiii')
         else:
             steer_pp = -self.max_steer_radians
+            print('noooo')
         steer_pp = float(steer_pp)
+        print("steer_pp:",steer_pp)
         return steer_pp, x_p, y_p
     
     def control_stanley(self):

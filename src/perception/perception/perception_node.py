@@ -29,7 +29,7 @@ from perception.YOLO import LoadYolo
 PACKAGE_ROOT = Path(__file__).resolve().parent  # get the path to the package
 CONFIG_PATH = PACKAGE_ROOT / 'config'      # path to the config folder
 
-# Ensure the config path exists (optional check)
+# Ensure the config path exists (opftional check)
 if not CONFIG_PATH.exists():
     raise FileNotFoundError(f"Config folder not found at {CONFIG_PATH}")
 
@@ -336,6 +336,7 @@ class PerceptionNode(Node):
             except KeyError:
                 self.get_logger().error("No cones detected :(")
                 return
+            
             thetas = data['thetas']
             ranges = data['ranges']
             colors = data['colors']

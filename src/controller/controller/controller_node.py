@@ -228,7 +228,7 @@ class ControllerNode(Node):
         # if (self.waypoints_available and self.CarState_available) == False:
         if self.waypoints_available == False and self.CarState_available == False:
             self.t_start = time.time()
-            self.get_logger().info(f'Waypoints Available:{self.waypoints_available} CarState available:{self.CarState_available}')
+            # self.get_logger().info(f'Waypoints Available:{self.waypoints_available} CarState available:{self.CarState_available}')
             return
         else:
             if time.time() < self.t_start + self.t_runtime :
@@ -245,12 +245,15 @@ class ControllerNode(Node):
 
     def send_to_vcu(self):
         # Send the information to the topic
-        self.steer_pp = -np.rad2deg(self.steer_pp)
+        
+        
+        
+        #self.steer_pp = -self.steer_pp
         if self.platform == 'eufs':
             control_msg = AckermannDriveStamped()
             control_msg.drive.steering_angle = float(self.steer_pp)
             control_msg.drive.acceleration = float(self.throttle - self.brake)
-            # control_msg.drive.acceleration = 0.05
+            # control_msg.drive.acceleratiogin = 0.05
             print("publishing throttle")
             
         else:
@@ -259,7 +262,7 @@ class ControllerNode(Node):
             control_msg.steering = float(self.steer_pp)
             control_msg.throttle = float(self.throttle)
             control_msg.brake = float(self.brake)
-
+        print("value of steer printed",self.steer_pp)
         self.publish_cmd.publish(control_msg)
 def main(args=None):
     rclpy.init(args=args)

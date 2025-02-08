@@ -82,7 +82,7 @@ constants_fusion:
   Y_offset : 0.15571 # in meters
 
 image_process_params:
-  resize: 'True'
+  resize: 'False'
   smoothen: 'False'
   blur: 'False'
 # and so on...

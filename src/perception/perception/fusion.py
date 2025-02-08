@@ -117,7 +117,7 @@ class FusionDepth():
         
         cone_xy = np.array([X_est, Y_est, cls, 0])
 
-        print("depth for 1 bbb retrinong`")
+        # print("depth for 1 bbb retrinong`")
         return depth, theta, range_3d, cls, cone_xy
     
     def find_depth(self ,boxes, image, lidar_coords, camera):
@@ -176,10 +176,11 @@ class FusionPipeline():
         depths_left, depths_using_fusion_left, thetas_left, ranges_left, colors_left, running_status = self.fusion.find_depth(left_boxes, left_image, lidar_coords, "Left")
         depths_right, depths_using_fusion_right, thetas_right, ranges_right, colors_right, running_status = self.fusion.find_depth(right_boxes, right_image, lidar_coords, "Right")
         
-        depths = depths_left + depths_right
-        depths_using_fusion = depths_using_fusion_left + depths_using_fusion_right
-        thetas = thetas_left + thetas_right
-        ranges = ranges_left + ranges_right
-        colors = colors_left + colors_right
-        draw_images(right_boxes, right_image, depths, depths_using_fusion, image_number)
+        print("here:", type(depths_left))
+        depths = np.concatenate((depths_left, depths_right))
+        depths_using_fusion = np.concatenate((depths_using_fusion_left, depths_using_fusion_right))
+        thetas = np.concatenate((thetas_left, thetas_right))
+        ranges = np.concatenate((ranges_left, ranges_right))
+        colors = np.concatenate((colors_left, colors_right))
+        # draw_images(right_boxes, right_image, depths, depths_using_fusion, image_number)
         return depths, depths_using_fusion, thetas, ranges, colors
