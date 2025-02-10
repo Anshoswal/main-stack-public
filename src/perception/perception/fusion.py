@@ -67,7 +67,7 @@ class FusionDepth():
         labels = model.fit_predict(points_filtered)
         self.lidar_coords = cones_xy(points_filtered,labels)
     
-    def depth_for_one_bb(self, image, bb, camera):  # finding depth for one bb 
+    def depth_for_one_bb(self, image, bb, camera, platform):  # finding depth for one bb 
         # bb is [class, [x,y,w,h], conf]
         cls = bb.cls.cpu().numpy()[0]
         xywh = bb.xywh.cpu().numpy()
@@ -104,13 +104,13 @@ class FusionDepth():
         Y = -(cone_middle[0] - self.cx) * (depth / self.fx)
         Z = (cone_middle[1] - self.cy) * (depth / self.fy)
 
-        if(camera == "Left"):
+        if(camera == "Left" and platform == "bot"):
 
             X_est = X*np.cos(-self.orientation_angle) + Y*np.sin(-self.orientation_angle)
             Y_est = -X*np.sin(-self.orientation_angle) + Y*np.cos(-self.orientation_angle)
             Y_est = Y_est - self.Y_offset
 
-        elif(camera == "Right"):
+        elif(camera == "Right" and platform == "bot"):
             X_est = X*np.cos(self.orientation_angle) - Y*np.sin(self.orientation_angle)
             Y_est = X*np.sin(self.orientation_angle) + Y*np.cos(self.orientation_angle)
             Y_est = Y_est + self.Y_offset
@@ -120,7 +120,7 @@ class FusionDepth():
         # print("depth for 1 bbb retrinong`")
         return depth, theta, range_3d, cls, cone_xy
     
-    def find_depth(self ,boxes, image, lidar_coords, camera):
+    def find_depth(self ,boxes, image, lidar_coords, camera, platform):
 
         print("FusionDepth: find_depth")
         if len(boxes) != 0:
@@ -133,7 +133,7 @@ class FusionDepth():
 
             for bb in boxes:
                 
-                depth_using_h, theta, range, cls, cone_xy = self.depth_for_one_bb(image, bb, camera)
+                depth_using_h, theta, range, cls, cone_xy = self.depth_for_one_bb(image, bb, camera, platform)
 
                 depths = np.append(depths, depth_using_h)
                 thetas = np.append(thetas, theta)
@@ -166,15 +166,15 @@ class FusionPipeline():
         self.fusion = FusionDepth(CONFIG_PATH, self.platform)
         # self.yolo = yolo
     
-    def fusionpipeline(self, left_image, right_image, image_number, left_boxes, right_boxes, lidar_coords):  
+    def fusionpipeline(self, left_image, right_image, image_number, left_boxes, right_boxes, lidar_coords, platform):  
         if left_image is None:
             self.logger.error("Image is None, Image number: {image_number}")
             return 
         
         # Run the mono pipeline
         # colors = [box[0].cpu().numpy() for box in boxes]
-        depths_left, depths_using_fusion_left, thetas_left, ranges_left, colors_left, running_status = self.fusion.find_depth(left_boxes, left_image, lidar_coords, "Left")
-        depths_right, depths_using_fusion_right, thetas_right, ranges_right, colors_right, running_status = self.fusion.find_depth(right_boxes, right_image, lidar_coords, "Right")
+        depths_left, depths_using_fusion_left, thetas_left, ranges_left, colors_left, running_status = self.fusion.find_depth(left_boxes, left_image, lidar_coords, "Left", platform)
+        depths_right, depths_using_fusion_right, thetas_right, ranges_right, colors_right, running_status = self.fusion.find_depth(right_boxes, right_image, lidar_coords, "Right", platform)
         
         print("here:", type(depths_left))
         depths = np.concatenate((depths_left, depths_right))

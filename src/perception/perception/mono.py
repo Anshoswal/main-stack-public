@@ -33,8 +33,10 @@ class MonoDepth():
         self.big_orange_b = perc_config['constants_mono']['profiles']['big_orange'][platform]['b']
         self.small_a = perc_config['constants_mono']['profiles']['small'][platform]['a']
         self.small_b = perc_config['constants_mono']['profiles']['small'][platform]['b']
+        self.orientation_angle = perc_config['constants_fusion']['orientation_angle']
+        self.Y_offset = perc_config['constants_fusion']['Y_offset']
 
-    def depth_for_one_bb(self, image, bb):  # finding depth for one bb 
+    def depth_for_one_bb(self, image, bb, camera, platform):  # finding depth for one bb 
         # bb is [class, [x,y,w,h], conf]
         cls = bb.cls.cpu().numpy()
         xywh = bb.xywh.cpu().numpy()
@@ -66,10 +68,30 @@ class MonoDepth():
 
         cone_middle = [xywh[0][0] , xywh[0][1] ]
         theta,range_3d = bearing(depth,cone_middle, image.shape)
+
+        # X = depth
+        # Y = -(cone_middle[0] - self.cx) * (depth / self.fx)
+        # Z = (cone_middle[1] - self.cy) * (depth / self.fy)
+
+        if(camera == "Left" and platform == "bot"):
+            
+            theta = theta + self.orientation_angle
+            depth = depth / cos(self.orientation_angle)
+            # X_est = X*np.cos(-self.orientation_angle) + Y*np.sin(-self.orientation_angle)
+            # Y_est = -X*np.sin(-self.orientation_angle) + Y*np.cos(-self.orientation_angle)
+            # Y_est = Y_est - self.Y_offset
+
+        elif(camera == "Right" and platform == "bot"):
+            theta = theta - self.orientation_angle
+            depth = depth / cos(self.orientation_angle)
+            # X_est = X*np.cos(self.orientation_angle) - Y*np.sin(self.orientation_angle)
+            # Y_est = X*np.sin(self.orientation_angle) + Y*np.cos(self.orientation_angle)
+            # Y_est = Y_est + self.Y_offset
+        
         return depth, theta, range_3d, cls
 
 
-    def find_depth(self ,boxes, image):
+    def find_depth(self ,boxes, image, camera, platform):
 
         if len(boxes) != 0:
 
@@ -80,7 +102,7 @@ class MonoDepth():
 
             for bb in boxes:
                 
-                depth_using_h, theta, range, cls = self.depth_for_one_bb(image,bb)
+                depth_using_h, theta, range, cls = self.depth_for_one_bb(image,bb, camera, platform)
 
                 depths = np.append(depths, depth_using_h)
                 thetas = np.append(thetas, theta)
@@ -108,7 +130,7 @@ class MonoPipeline():
         # self.yolo = yolo
 
 
-    def monopipeline(self, left_image, image_number, boxes):  
+    def monopipeline(self, left_image, right_image, image_number, left_boxes, right_boxes, platform):  
 
         # self.logger.info(f"Processing IMAGE {image_number}")     # For debugging or synchronization if multi threading is implemented 
         
@@ -119,7 +141,14 @@ class MonoPipeline():
         
         # Run the mono pipeline
         # colors = [box[0].cpu().numpy() for box in boxes]
-        depths, thetas, ranges, colors, running_status = self.mono.find_depth(boxes, left_image)
+        depths_left, thetas_left, ranges_left, colors_left, running_status = self.mono.find_depth(left_boxes, left_image, "Left", platform)
+        depths_right, thetas_right, ranges_right, colors_right, running_status = self.mono.find_depth(right_boxes, right_image, "Right", platform)
 
-        self.logger.info(f"Number of cones detected: {len(boxes)}, Image: {image_number}")
+        depths = np.concatenate((depths_left, depths_right))
+        thetas = np.concatenate((thetas_left, thetas_right))
+        ranges = np.concatenate((ranges_left, ranges_right))
+        colors = np.concatenate((colors_left, colors_right))
+
+        self.logger.info(f"Number of cones detected (Left Image): {len(left_boxes)}, Image: {image_number}")
+        self.logger.info(f"Number of cones detected (Right Image): {len(right_boxes)}, Image: {image_number}")
         return depths, thetas, ranges, colors

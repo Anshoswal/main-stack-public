@@ -296,9 +296,9 @@ class PerceptionNode(Node):
 
                 # Execute the specific pipeline
                 if (pipeline_name == 'monopipeline'):
-                    depths, thetas, ranges, colors = pipeline.monopipeline(left_image, self.frame_number, left_boxes)
+                    depths, thetas, ranges, colors = pipeline.monopipeline(left_image, right_image, self.frame_number, left_boxes, right_boxes, self.platform)
                 elif (pipeline_name == 'fusionpipeline'):
-                    depths, fusion_d, thetas, ranges, colors = pipeline.fusionpipeline(left_image, right_image, self.frame_number, left_boxes, right_boxes, self.lidar_coords)
+                    depths, fusion_d, thetas, ranges, colors = pipeline.fusionpipeline(left_image, right_image, self.frame_number, left_boxes, right_boxes, self.lidar_coords, self.platform)
                 elif (pipeline_name == 'dualmonopipeline'):
                     depths, thetas, ranges, colors = pipeline.dualmonopipeline(left_image, right_image, self.frame_number, left_boxes, right_boxes)
                 
