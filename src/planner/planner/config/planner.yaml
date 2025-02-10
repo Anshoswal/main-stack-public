@@ -16,5 +16,5 @@ ellipse_dimensions:
 
 LENGTH_OF_CAR : 0.5
 BEST_PATH : False
-TRACK_WIDTH : 1.5 #change for different tracks
+TRACK_WIDTH : 1.4 #change for different tracks
 
