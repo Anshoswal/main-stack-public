@@ -142,7 +142,7 @@ def pure_pursuit(x, y, vf, pos_x, pos_y, veh_head ,K, L , MAX_STEER):
 
     #Clip the steering to max values
     final_steer = max( - max_steer_radians, min(steer , max_steer_radians))
-    if math.abs(final_steer) == MAX_STEER:
+    if abs(final_steer) == MAX_STEER:
          print("max steer from pure persuitttttttttttttttttttttttttttt")
     return [final_steer, waypoint_x, waypoint_y,steer,theta]
 

@@ -104,10 +104,6 @@ class Algorithms():
                 
             else:
                 # print(self.current_waypoints[:,0], "waypoints")
-                [steer_pp, x_p, y_p,steer,theta] = pure_pursuit(x = self.current_waypoints[:,0], y = self.current_waypoints[:,1], 
-                                                    vf=self.v_curr, pos_x=self.pos_x, pos_y=self.pos_y, 
-                                                    veh_head=self.car_yaw, K = self.k_dynamic, L=self.car_length, MAX_STEER = self.max_steer_radians)
-                print(steer_pp)
                 print(f" Car state {self.pos_x},{self.pos_y}, {self.car_yaw}")
                 # print('x_p,y_p',x_p,y_p)
                 # print('v_curr',self.v_curr)
@@ -122,8 +118,8 @@ class Algorithms():
                     # print('x_p,y_p',x_p,y_p)
                     # print('v_curr',self.v_curr)
                     # print('theta,steer',theta,steer)
-                except:
-                    print('inside except')
+                except Exception as ex:
+                    print('inside except', ex)
                     pass
 
                 
