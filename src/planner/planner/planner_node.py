@@ -54,7 +54,7 @@ class PlannerNode(Node):
             self.planner_config_topic = yaml.safe_load(yaml_file)
         with open(CONFIG_PATH / "planner.yaml", "r") as yaml_file:
             self.planner_config = yaml.safe_load(yaml_file)
-        self.LENGTH_OF_CAR = self.planner_config['LENGTH_OF_CAR']
+        
         self.FOV = math.radians(self.planner_config['FOV'])
         self.FOV_RADIUS = self.planner_config['FOV_RADIUS']
         self.semi_major_axis = self.planner_config['ellipse_dimensions']['a']
@@ -62,8 +62,8 @@ class PlannerNode(Node):
         self.PERCEPTION_DISTANCE = self.planner_config['PERCEPTION_DISTANCE']
 
         # Declare the parameters 
-        self.declare_parameter('data_source', 'perc_ppc')   # Declare the platform being used, default is eufs
-        self.declare_parameter('platform', 'bot')
+        self.declare_parameter('data_source', 'ground_truth')   # Declare the platform being used, default is eufs
+        self.declare_parameter('platform', 'eufs')
 
         # Get the parameter values
         self.platform = self.get_parameter('platform').get_parameter_value().string_value
@@ -78,7 +78,7 @@ class PlannerNode(Node):
         if self.platform not in ['eufs', 'bot']: 
             self.get_logger().error("Invalid system parameter. Choose either 'eufs' or 'bot'. Shutting the Node down...")
             self.destroy_node() 
-
+        self.LENGTH_OF_CAR = self.planner_config[self.platform]['LENGTH_OF_CAR']
 
         #loading topics
         self.set_topic_subscriber(self.platform , self.data_source)
@@ -121,7 +121,7 @@ class PlannerNode(Node):
     def get_map(self, data):
         # Algorithm function calls are made here
         # Dispatch dictionary
-      
+        print("IN GET MAP")
         dispatch = {
             ("eufs", "sim_slam"): lambda: slam_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones ,self.slam_blue_cones ,self.slam_yellow_cones ,self.slam_big_orange_cones ,self.slam_orange_cones,self.posX , self.posY ,self. car_yaw,self.FOV,self.FOV_RADIUS,self.semi_major_axis,self.semi_minor_axis),
             ("eufs", "ground_truth"): lambda: groundTruth_cones(data,blue_cones,yellow_cones,big_orange_cones,orange_cones,self.PERCEPTION_DISTANCE),
@@ -151,7 +151,7 @@ class PlannerNode(Node):
         self.orange_cones = np.array(orange_cones)
         self.distance_blue = np.array(distance_blue)       
         self.distance_yellow = np.array(distance_yellow)
-        midline_delaunay = Midline_delaunay(CONFIG_PATH, self.blue_cones, self.yellow_cones , self.orange_cones , self.big_orange_cones , self.posX , self.posY , self.car_yaw , self.distance_blue ,self.distance_yellow )
+        midline_delaunay = Midline_delaunay(CONFIG_PATH, self.blue_cones, self.yellow_cones , self.orange_cones , self.big_orange_cones , self.posX , self.posY , self.car_yaw,self.platform , self.distance_blue ,self.distance_yellow )
         self.waypoints = midline_delaunay.get_waypoints()#send to publisher
         print('waypoinmts ',self.waypoints)
         self.waypoints_msg = PointArray()

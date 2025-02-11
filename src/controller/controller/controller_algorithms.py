@@ -5,7 +5,7 @@ import time
 from controller.controller_packages.utilities import *
 
 class Algorithms():
-    def __init__(self, CONFIG_PATH : str,t_start, waypoints_available,CarState_available,store_path_taken,current_waypoints,blue_cones,yellow_cones,pos_x,pos_y,car_yaw,v_curr,integral,vel_error,stoppoints_available,stop_signal,too_close_blue,too_close_yellow):
+    def __init__(self, CONFIG_PATH : str,t_start, waypoints_available,CarState_available,store_path_taken,current_waypoints,blue_cones,yellow_cones,pos_x,pos_y,car_yaw,v_curr,integral,vel_error,stoppoints_available,stop_signal,too_close_blue,too_close_yellow,platform):
         self.t_start = t_start
         self.t1 = t_start - 1
         
@@ -21,7 +21,7 @@ class Algorithms():
         self.v_curr = v_curr
         self.integral = integral
         self.vel_error = vel_error
-        
+        self.platform = platform
 
         self.stoppoints_available = stoppoints_available
         self.stop_signal = stop_signal
@@ -30,12 +30,14 @@ class Algorithms():
         controls_config_path = CONFIG_PATH / 'controller.yaml'
         with open(controls_config_path) as file:
             controls_config = yaml.load(file, Loader=yaml.FullLoader)
-        self.car_length = controls_config['length_of_car']
+        self.car_length = controls_config[self.platform]['length_of_car']
+        print("platfoprm::",self.platform)
+
         self.max_steer_radians = controls_config['max_steer_radians']
-        self.v_ref = controls_config['v_ref']
-        self.kp = controls_config['kp']
-        self.ki = controls_config['ki']
-        self.kd = controls_config['kd']
+        self.v_ref = controls_config[self.platform]['v_ref']
+        self.kp = controls_config[self.platform]['kp']
+        self.ki = controls_config[self.platform]['ki']
+        self.kd = controls_config[self.platform]['kd']
         self.pure_pursuit = controls_config['pure_pursuit']
         self.stanley = controls_config['stanley']
         self.k_static = controls_config['k_static']
@@ -115,7 +117,7 @@ class Algorithms():
                                                         veh_head=self.car_yaw, K = self.k_static, L=self.car_length, MAX_STEER = self.max_steer_radians)
                     print(steer_pp)
                     print(f" Car state {self.pos_x},{self.pos_y}, {self.car_yaw}")
-                    # print('x_p,y_p',x_p,y_p)
+                    # print('x_pcar_length,y_p',x_p,y_p)
                     # print('v_curr',self.v_curr)
                     # print('theta,steer',theta,steer)
                 except Exception as ex:

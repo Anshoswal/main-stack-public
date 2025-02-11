@@ -65,7 +65,6 @@ class ControllerNode(Node):
         # parameters here
         with open(CONFIG_PATH / "controller.yaml", "r") as yaml_file:
             self.controller_config_data = yaml.safe_load(yaml_file)
-        self.fixed_frame = self.controller_config_data['fixed_frame']
         self.period = self.controller_config_data['period']
         self.t_runtime = self.controller_config_data['t_runtime']
         self.subscribe_carstate = self.controller_config_data['get_carstate']
@@ -80,8 +79,8 @@ class ControllerNode(Node):
         #for carstate
         
         #declare params
-        self.declare_parameter('data_source', 'perc_ppc')   # Declare the platform being used, default is eufs
-        self.declare_parameter('platform', 'bot')
+        self.declare_parameter('data_source', 'ground_truth')   # Declare the platform being used, default is eufs
+        self.declare_parameter('platform', 'eufs')
         # Get the parameter values
         self.platform = self.get_parameter('platform').get_parameter_value().string_value
         self.data_source = self.get_parameter('data_source').get_parameter_value().string_value
@@ -94,6 +93,7 @@ class ControllerNode(Node):
         if self.platform not in ['eufs', 'bot']: 
             self.get_logger().error("Invalid system for controller parameter. Choose either 'eufs' or 'bot'. Shutting the Node down...")
             self.destroy_node() 
+        self.fixed_frame = self.controller_config_data[self.data_source]['fixed_frame']
 
         if self.platform == "eufs":
             self.car_state_topic = self.controller_topic_data[self.data_source]['state']['topic']
@@ -232,7 +232,7 @@ class ControllerNode(Node):
             return
         else:
             if time.time() < self.t_start + self.t_runtime :
-                control_callback = Algorithms(CONFIG_PATH,self.t_start,self.waypoints_available,self.CarState_available,self.store_path_taken,self.current_waypoints,self.blue_cones,self.yellow_cones,self.pos_x,self.pos_y,self.car_yaw,self.v_curr,self.integral,self.vel_error,self.stoppoints_available,self.stop_signal,self.too_close_blue,self.too_close_yellow)
+                control_callback = Algorithms(CONFIG_PATH,self.t_start,self.waypoints_available,self.CarState_available,self.store_path_taken,self.current_waypoints,self.blue_cones,self.yellow_cones,self.pos_x,self.pos_y,self.car_yaw,self.v_curr,self.integral,self.vel_error,self.stoppoints_available,self.stop_signal,self.too_close_blue,self.too_close_yellow,self.platform)
                 self.throttle,  self.brake = control_callback.throttle_controller()
                 self.steer_pp, self.x_p, self.y_p = control_callback.control_pure_pursuit()
                 self.get_logger().info(f'Speed:{self.v_curr:.4f} Accn:{float(self.throttle - self.brake):.4f} Steer:{float(-self.steer_pp):.4f} Time:{time.time() - self.t_start:.4f}')

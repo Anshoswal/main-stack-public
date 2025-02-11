@@ -6,7 +6,7 @@ from planner.trajectory_packages.utilities import interpolate , check_track , ge
 from scipy.spatial import Delaunay
 
 class Midline_delaunay():
-    def __init__(self , CONFIG_PATH:str ,blue_cones,yellow_cones , orange_cones , big_orange_cones ,posX , posY ,car_yaw , distance_blue = None ,distance_yellow = None):
+    def __init__(self , CONFIG_PATH:str ,blue_cones,yellow_cones , orange_cones , big_orange_cones ,posX , posY ,car_yaw ,platform, distance_blue = None ,distance_yellow = None):
         ppc_config_path = CONFIG_PATH / 'planner.yaml'
         with open(ppc_config_path) as file:
             ppc_config = yaml.load(file, Loader=yaml.FullLoader)
@@ -15,7 +15,8 @@ class Midline_delaunay():
         self.big_orange_cones = big_orange_cones
         self.orange_cones = orange_cones
         self.ellipse_dim = [ppc_config['ellipse_dimensions']['a'] , ppc_config['ellipse_dimensions']['b']]
-        self.LENGTH_OF_CAR = ppc_config['LENGTH_OF_CAR']
+        self.platform = platform
+        self.LENGTH_OF_CAR = ppc_config[self.platform]['LENGTH_OF_CAR']
         self.TRACK_WIDTH = ppc_config['TRACK_WIDTH']
         self.distance_blue = distance_blue####initialize in the individual files for initiliazing perception data or slam data
         self.distance_yellow = distance_yellow####

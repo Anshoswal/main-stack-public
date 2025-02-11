@@ -1,15 +1,33 @@
 period : 0.05
 max_steer_radians : 0.384
-v_ref : 0.8 #in m/sec
+
 k_static : 0.8 #for lookahead distance only for pure pursuit 
 min_normal_distance : 0.5 #checks normal_distance from the boundary segments
 max_angle_diff : 7.5 #in degrees, checks angle with boundary segments
-kp : 0.2 #0.2 for bot, 0.4 for sim 
-ki : 0.18 #0.18 for bot, 0.001 for sim
-kd : 0.00 #0.00 for bot, 0.02 for bot
-length_of_car : 0.5 # 0.5 for bot, 1.5 for sim
+
+bot:
+  kp : 0.2  
+  ki : 0.18
+  kd : 0.00
+  v_ref : 0.4
+  length_of_car : 0.5 # 0.5 for bot, 1.5 for sim
+
+eufs:
+  kp : 0.4 #0.2 for bot, 0.4 for sim 
+  ki : 0.001 #0.18 for bot, 0.001 for sim
+  kd : 0.02 #0.00 for bot, 0.02 for sim
+  length_of_car : 1.5
+  v_ref : 5.0 #in m/sec
+
 pure_pursuit : True
 stanley : False
 get_carstate : True
 t_runtime : 1000
-fixed_frame: True
+
+ground_truth:
+  fixed_frame: True
+perc_ppc:
+  fixed_frame: True
+sim_slam:
+  fixed_frame: False
+
