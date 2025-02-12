@@ -25,7 +25,8 @@ def curvature(waypoints:np.ndarray, k_static, v_ref:float):#calculates average c
         mean_change = min(0.05,mean_change)
 
         k_dynamic = k_static - mean_change*7.5
-        v_ref_dynamic = v_ref - mean_change*39
+        v_ref_dynamic = v_ref - mean_change*35
+        print('curvature factor',mean_change)
         return mean_change, k_dynamic, v_ref_dynamic
 
 def line_proximity(x1,y1,x2,y2,pos_x,pos_y,yaw):#This function checks the proximity of a car from the boundary line segments in terms of perpendicular distance and angle
