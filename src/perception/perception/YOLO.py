@@ -32,6 +32,7 @@ class LoadYolo():
         # boxes = self.yolo_model.detect_all(image, conf_thres = self.conf_thresh)[0]
 
         image = image[:, :, :3]
+        print(image.shape)
         detected_boxes = self.yolo_model.predict(image)[0]
         boxes = [box.boxes for box in detected_boxes]
 

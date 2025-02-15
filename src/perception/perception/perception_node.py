@@ -72,7 +72,7 @@ class PerceptionNode(Node):
         self.pipeline = [pipeline] if isinstance(pipeline, str) else pipeline
 
         # Raise an error and kill the node if the platform is not bot or eufs
-        if self.platform not in ['bot', 'eufs']: 
+        if self.platform not in ['bot', 'eufs','carmaker']: 
             self.get_logger().error("Invalid system parameter. Choose either 'bot' or 'eufs'. Shutting the Node down...")
             self.destroy_node() 
 
