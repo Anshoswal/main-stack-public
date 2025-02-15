@@ -62,10 +62,10 @@ def perc_cones_bot(msg,blue_cones,yellow_cones,big_orange_cones,orange_cones,PER
     for cone in msg.track:
         if((cone.color == 0)):
             if cone.location.x <= PERCEPTION_DISTANCE:#config file 
-                blue_cones.append([cone.location.x*cos(cone.location.y), cone.location.x*sin(cone.location.x),0])
+                blue_cones.append([cone.location.x*cos(cone.location.y), cone.location.x*sin(cone.location.y),0])
         elif(cone.color == 1):
             if cone.location.x <= PERCEPTION_DISTANCE:#config file 
-                yellow_cones.append([cone.location.x*cos(cone.location.y), cone.location.x*sin(cone.location.x),0])
+                yellow_cones.append([cone.location.x*cos(cone.location.y), cone.location.x*sin(cone.location.y),1])
         elif(cone.color == 2):
         #     if cone.location.x < 0 and cone.location.y < 1: # this limit on y of big orange cone is for testing only as our track is smaller than actual acceleration
         #         big_orange_cones_left.append([cone.location.x, cone.location.y])
@@ -254,7 +254,7 @@ def midpoints_from_triangle(new_list3):
                 point_1y=triangle[i][1]
                 point_2y=triangle[j][1]   
                 line_length = math.sqrt((point_1x-point_2x)**2 + (point_1y-point_2y)**2)                
-                if triangle[i][2]!=triangle[j][2]:
+                if triangle[i][2]!=triangle[j][2] and line_length<7 and line_length>0.5:
                     #2.9 and 4
                     line_mid_x = (triangle[i][0]+triangle[j][0])/2
                     line_mid_y = (triangle[i][1]+triangle[j][1])/2

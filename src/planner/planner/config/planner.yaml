@@ -2,7 +2,7 @@ PERIOD : 0.05 #20Hz
 SLAM_DISTANCE : 10
 LAP_COUNT : 4
 INTERPOLATION : False
-PERCEPTION_DISTANCE : 12 #change for different maps while using ground truth
+PERCEPTION_DISTANCE : 6 #change for different maps while using ground truth
 NUMBER_OF_WAYPOINTS : 4
 ANGLE_WEIGHT : 1.4
 EDGE_WEIGHT : 0.4

@@ -72,7 +72,7 @@ class Algorithms():
             else:
                 #print("i am hereeee")
                 [throttle,brake,self.integral,self.vel_error,diffn ] = vel_controller2(kp=self.kp, ki=self.ki, kd=self.kd,
-                                                                        v_curr=self.v_curr, v_ref=self.v_ref,
+                                                                        v_curr=self.v_curr, v_ref=self.v_ref_dynamic,
                                                                         dt=dt_vel, prev_integral=self.integral, prev_vel_error=self.vel_error)
                 #print('tthrotle', throttle)
                 #print('bbrake',brake)
@@ -81,7 +81,7 @@ class Algorithms():
             # print('paired',self.paired_indexes)            
             throttle = float(throttle)
             brake = float(brake)
-            return throttle, brake
+            return throttle, brake, mean_change, self.v_ref_dynamic
         
     def control_pure_pursuit(self):
         steer_pp=0

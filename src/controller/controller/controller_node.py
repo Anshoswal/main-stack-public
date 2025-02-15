@@ -30,6 +30,10 @@ from builtin_interfaces.msg import Duration
 # Algorithm imports here
 from controller.controller_algorithms import Algorithms
 from controller.controller_packages.utilities import *
+import csv
+import pandas as pd
+import matplotlib.pyplot as plt
+
 
 # Define ROOT 
 
@@ -116,7 +120,7 @@ class ControllerNode(Node):
                 10
             )
             if self.fixed_frame:
-                self.car_yaw = np.radians(90) #axis is rotated by 90 in case of bot in car's frame
+                self.car_yaw = 0 #axis is rotated by 90 in case of bot in car's frame
 
 
         #for waypoints and stoppoints
@@ -173,7 +177,14 @@ class ControllerNode(Node):
         print("to vcu data topic:",self.to_vcu_publisher_topic)
         self.publish_cmd = self.create_publisher(eval(self.to_vcu_publisher_dtype), self.to_vcu_publisher_topic, 10)
         
-        
+        ##Creatong a csv file for tuning
+                # CSV filename
+        self.csv_filename = "controller_data_12.csv"
+
+        # Initialize CSV file with headers
+        with open(self.csv_filename, mode="w", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow(["Throttle","Brake","curvature","target_vel","current_vel", "steer"])
 
     def store_waypoints(self, msg):
         self.current_waypoints = np.array([[0,0]])
@@ -233,10 +244,16 @@ class ControllerNode(Node):
         else:
             if time.time() < self.t_start + self.t_runtime :
                 control_callback = Algorithms(CONFIG_PATH,self.t_start,self.waypoints_available,self.CarState_available,self.store_path_taken,self.current_waypoints,self.blue_cones,self.yellow_cones,self.pos_x,self.pos_y,self.car_yaw,self.v_curr,self.integral,self.vel_error,self.stoppoints_available,self.stop_signal,self.too_close_blue,self.too_close_yellow,self.platform)
-                self.throttle,  self.brake = control_callback.throttle_controller()
+                self.throttle,  self.brake, self.mean_change, self.v_ref_dynamic = control_callback.throttle_controller()
                 self.steer_pp, self.x_p, self.y_p = control_callback.control_pure_pursuit()
                 self.get_logger().info(f'Speed:{self.v_curr:.4f} Accn:{float(self.throttle - self.brake):.4f} Steer:{float(-self.steer_pp):.4f} Time:{time.time() - self.t_start:.4f}')
-
+                # Append data to CSV file
+                with open(self.csv_filename, mode="a", newline="") as file:
+                    writer = csv.writer(file)
+                    writer.writerow([
+                        self.throttle, self.brake, 
+                        self.mean_change, self.v_ref_dynamic, self.v_curr, self.steer_pp
+                    ])
                 self.send_to_vcu()
             else :
                 self.get_logger().info(f'Time Finished')

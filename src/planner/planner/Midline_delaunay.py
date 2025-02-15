@@ -39,6 +39,7 @@ class Midline_delaunay():
     
         try:
             x_mid, y_mid, line_list , self.line_length_list = self.delaunay_waypoints(self.blue_cones,self.yellow_cones)
+            print("delaunay waypoints :",x_mid)
             xy_mid = np.column_stack((x_mid,y_mid))
             if self.BEST_PATH:
                 best_path = self.get_best_path(self.posX,self.posY)
@@ -55,6 +56,7 @@ class Midline_delaunay():
                 xy_mid_send = interpolate(x_mid=best_path[:][0], y_mid=best_path[:][1], distances=distances_from_midpoints)
         
         #xy_mid_send = xy_mid
+
         if self.INTERPOLATION and len(np.unique(x_mid))>1:
             distances_from_midpoints = distances(f_tire_x, f_tire_y, x_mid=x_mid, y_mid=y_mid)
             xy_mid = interpolate(x_mid=x_mid, y_mid=y_mid, distances=distances_from_midpoints)

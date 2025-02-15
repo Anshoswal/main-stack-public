@@ -26,6 +26,7 @@ def curvature(waypoints:np.ndarray, k_static, v_ref:float):#calculates average c
 
         k_dynamic = k_static - mean_change*7.5
         v_ref_dynamic = v_ref - mean_change*0.5
+        v_ref_dynamic = max(v_ref_dynamic,0.5)
         print('curvature factor',mean_change)
         print('target velocity',v_ref_dynamic)
         return mean_change, k_dynamic, v_ref_dynamic
