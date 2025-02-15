@@ -113,8 +113,8 @@ class Algorithms():
                     [steer_pp, x_p, y_p,steer,theta] = pure_pursuit(x = self.current_waypoints[:,0], y = self.current_waypoints[:,1], 
                                                         vf=self.v_curr, pos_x=self.pos_x, pos_y=self.pos_y, 
                                                         veh_head=self.car_yaw, K = self.k_static, L=self.car_length, MAX_STEER = self.max_steer_radians)
-                    print(steer_pp)
-                    print(f" Car state {self.pos_x},{self.pos_y}, {self.car_yaw}")
+                    #print(steer_pp)
+                    #print(f" Car state {self.pos_x},{self.pos_y}, {self.car_yaw}")
                     # print('x_p,y_p',x_p,y_p)
                     # print('v_curr',self.v_curr)
                     # print('theta,steer',theta,steer)
@@ -130,7 +130,7 @@ class Algorithms():
             steer_pp = -self.max_steer_radians
             print('noooo')
         steer_pp = float(steer_pp)
-        print("steer_pp:",steer_pp)
+        #print("steer_pp:",steer_pp)
         return steer_pp, x_p, y_p
     
     def control_stanley(self):

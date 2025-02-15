@@ -22,11 +22,12 @@ def curvature(waypoints:np.ndarray, k_static, v_ref:float):#calculates average c
             angle2 = math.atan2(x[i+2]-x[i+1], y[i+2]-y[i+1])
             change.append(abs(angle1 - angle2))
         mean_change = np.mean(change)
-        mean_change = min(0.05,mean_change)
+        #mean_change = min(0.05,mean_change)
 
         k_dynamic = k_static - mean_change*7.5
-        v_ref_dynamic = v_ref - mean_change*35
+        v_ref_dynamic = v_ref - mean_change*0.5
         print('curvature factor',mean_change)
+        print('target velocity',v_ref_dynamic)
         return mean_change, k_dynamic, v_ref_dynamic
 
 def line_proximity(x1,y1,x2,y2,pos_x,pos_y,yaw):#This function checks the proximity of a car from the boundary line segments in terms of perpendicular distance and angle
