@@ -4,10 +4,20 @@ v_ref : 1.5 #in m/sec
 k_static : 0.8 #for lookahead distance only for pure pursuit 
 min_normal_distance : 0.5 #checks normal_distance from the boundary segments
 max_angle_diff : 7.5 #in degrees, checks angle with boundary segments
-kp : 0.09 #0.09 for bot, 0.4 for sim 
-ki : 0.36 #0.36 for bot, 0.001 for sim
-kd : 0.00 #0.00 for bot, 0.02 for bot
-length_of_car : 0.5 # 0.5 for bot, 1.5 for sim
+
+bot:
+  kp : 0.09  
+  ki : 0.36 
+  kd : 0.00 
+
+eufs:
+  kp: 0.4
+  ki: 0.001
+  kd: 0.02
+
+length_of_car : 
+  bot: 0.5 
+  eufs: 1.5
 pure_pursuit : True
 stanley : False
 get_carstate : True

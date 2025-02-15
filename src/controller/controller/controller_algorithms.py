@@ -30,9 +30,9 @@ class Algorithms():
         controls_config_path = CONFIG_PATH / 'controller.yaml'
         with open(controls_config_path) as file:
             controls_config = yaml.load(file, Loader=yaml.FullLoader)
-        self.car_length = controls_config[self.platform]['length_of_car']
         print("platfoprm::",self.platform)
-
+        
+        self.car_length = controls_config['length_of_car'][self.platform]
         self.max_steer_radians = controls_config['max_steer_radians']
         self.v_ref = controls_config[self.platform]['v_ref']
         self.kp = controls_config[self.platform]['kp']
