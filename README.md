@@ -1,4 +1,5 @@
 # IITBDV-main-stack
+### This is the production branch. No commits will be made to this branch directly. Features will be added to this branch only after aprroval from your respective DEs
 
 ## Python package
 ### [master README](/src/master/README.md)
